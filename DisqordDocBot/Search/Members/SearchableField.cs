@@ -18,14 +18,12 @@ namespace DisqordDocBot.Search
         {
             var eb = base.CreateInfoEmbed().AddField("Type", Info.FieldType.Name);
             
-                
+            
             if (Info.IsConstantField() && Info.GetRawConstantValue() is { } value)
                 eb.AddField("Value: ", value);
             else if (Info.IsBootlegConstantField())
                 eb.AddField("Value", Info.GetValue(null));
-
-
-
+            
             return eb;
         }
 

@@ -48,10 +48,12 @@ namespace DisqordDocBot.Search
             return info switch
             {
                 PropertyInfo propertyInfo => new SearchableProperty(propertyInfo, parent),
+                MethodInfo {DeclaringType: { }} methodInfo when methodInfo.DeclaringType == typeof(object) => new HiddenSearchable(methodInfo, parent),
                 MethodInfo methodInfo => new SearchableMethod(methodInfo, parent),
                 FieldInfo fieldInfo => new SearchableField(fieldInfo, parent),
                 EventInfo eventInfo => new SearchableEvent(eventInfo, parent),
                 ConstructorInfo constructorInfo => new SearchableConstructor(constructorInfo, parent),
+                TypeInfo typeInfo => new HiddenSearchable(typeInfo, parent),
                 _ => new SearchableUnknown(info, parent)
             };
         }

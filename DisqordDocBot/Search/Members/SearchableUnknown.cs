@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 
 namespace DisqordDocBot.Search
@@ -8,7 +7,7 @@ namespace DisqordDocBot.Search
         public SearchableUnknown(MemberInfo info, SearchableType parent)
             : base(info, parent)
         {
-            
+           
         }
         
         public override string ToString() 

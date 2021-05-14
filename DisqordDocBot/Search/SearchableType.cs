@@ -48,34 +48,36 @@ namespace DisqordDocBot.Search
         {
             var eb = new LocalEmbedBuilder()
                 .WithDefaultColor()
-                .WithTitle(Info.FullName)
+                .WithTitle(ToString())
                 .WithDescription("docs here");
 
-            var definedProperties = Info.GetProperties();
-            var definedMethods = Info.GetMethods();
-            var displayMethods = new List<string>(3);
-            foreach (var method in definedMethods)
+            var displayMethods = new List<string>();
+            var displayProperties = new List<string>();
+            foreach (var member in Members)
             {
-                if (displayMethods.Count == 3)
+                if (displayMethods.Count == 3 && displayProperties.Count == 3)
                     break;
-                
-                if (definedProperties.Any(x => x.GetMethod == method || x.SetMethod == method))
-                    continue;
-                
-                displayMethods.Add(method.Name);
+
+                if (displayMethods.Count < 3 && member is SearchableMethod method)
+                    displayMethods.Add(method.Info.Name);
+                else if (displayProperties.Count < 3 && member is SearchableProperty property)
+                    displayProperties.Add(property.Info.Name);
             }
-            
-            
-            if(definedProperties.Length > 0)
-                eb.AddField("Properties", string.Join('\n', definedProperties.Take(3).Select(x => x.Name)), true);
 
-            eb.AddBlankField(true);
             
-            if(displayMethods.Count > 0)
-                eb.AddField("Methods", string.Join('\n', displayMethods), true);
-            
+            if (displayProperties.Count > 0)
+            {
+                eb.AddInlineField("Properties", string.Join("\n", displayProperties));
+                eb.AddInlineBlankField();
+            }
 
+            if (displayMethods.Count > 0)
+                eb.AddInlineField("Methods", string.Join('\n', displayMethods));
+            
             return eb;
         }
+
+        public override string ToString()
+            => Info.IsEnum ? $"Enum: {Info.FullName}" : $"Type: {Info.FullName}";
     }
 }
