@@ -42,8 +42,7 @@ namespace DisqordDocBot
                 .ConfigureDiscordBot((context, bot) =>
                 {
                     bot.Token = context.Configuration["discord:token"];
-                    // bot.OwnerIds = new[] {new Snowflake(Global.AuthorId)};
-                    bot.Intents = GatewayIntents.All;
+                    bot.Intents = GatewayIntents.Unprivileged;
                 })
                 .Build();
             
