@@ -49,6 +49,7 @@ namespace DisqordDocBot.Search
             {
                 PropertyInfo propertyInfo => new SearchableProperty(propertyInfo, parent),
                 MethodInfo {DeclaringType: { }} methodInfo when methodInfo.DeclaringType == typeof(object) => new HiddenSearchable(methodInfo, parent),
+                MethodInfo methodInfo when methodInfo.IsExtensionMethod() => new SearchableExtensionMethod(methodInfo, parent),
                 MethodInfo methodInfo => new SearchableMethod(methodInfo, parent),
                 FieldInfo fieldInfo => new SearchableField(fieldInfo, parent),
                 EventInfo eventInfo => new SearchableEvent(eventInfo, parent),

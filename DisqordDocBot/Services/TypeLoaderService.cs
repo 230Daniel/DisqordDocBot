@@ -7,13 +7,23 @@ namespace DisqordDocBot.Services
     public class TypeLoaderService
     {
         public IReadOnlyList<TypeInfo> LoadedTypes => _typeInfos;
-        
+
         private readonly List<TypeInfo> _typeInfos;
         
         public TypeLoaderService()
         {
             _typeInfos = new List<TypeInfo>();
             PopulateTypeCache();
+        }
+
+        public IEnumerable<MethodInfo> GetAllExtensionMethods()
+        {
+            var extensionMethods = new List<MethodInfo>();
+
+            foreach (var loadedType in LoadedTypes)
+                extensionMethods.AddRange(loadedType.GetExtensionMethodsFromType());
+
+            return extensionMethods;
         }
 
         private void PopulateTypeCache()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace DisqordDocBot.Extensions
 {
@@ -66,6 +67,40 @@ namespace DisqordDocBot.Extensions
             return backingMethods;
         }
 
+        // public static IReadOnlyList<MethodInfo> GetAllExtensionMethods(this Type typeToSearch, IReadOnlyList<TypeInfo> typesToSearch)
+        // {
+        //     var extensionMethods = new List<MethodInfo>();
+        //     foreach (var type in typesToSearch)
+        //     {
+        //         // check for static
+        //         if (!(type.IsAbstract && type.IsSealed && !type.IsNested))
+        //             continue;
+        //
+        //         var methods = type.GetMethods();
+        //         extensionMethods.AddRange(methods.Where
+        //             (x => x.IsDefined(typeof(ExtensionAttribute), false) &&
+        //                   x.GetParameters().FirstOrDefault() is { } param && 
+        //                   typeToSearch.IsAssignableTo(param.ParameterType)));
+        //     }
+        //
+        //     return extensionMethods;
+        // }
+
+        public static IEnumerable<MethodInfo> GetExtensionMethodsFromType(this Type type)
+        {
+            // check for static
+            if (!(type.IsAbstract && type.IsSealed && !type.IsNested))
+                return Array.Empty<MethodInfo>();
+            
+            var methods = type.GetMethods();
+            return methods.Where(x => x.IsExtensionMethod());
+        }
+
+        public static bool IsExtensionMethod(this MethodInfo methodInfo)
+            => methodInfo.IsDefined(typeof(ExtensionAttribute), false) &&
+               methodInfo.GetParameters().FirstOrDefault() is { };
+        
+        
         public static bool IsConstantField(this FieldInfo info)
             => info.IsLiteral && !info.IsInitOnly;
         
@@ -73,7 +108,7 @@ namespace DisqordDocBot.Extensions
             => info.IsStatic && !info.IsLiteral && info.IsInitOnly;
 
         public static string CreateArgString(this MethodBase methodBase)
-            => $"({string.Join(", ", methodBase.GetParameters().Select(x => $"{x.ParameterType.Humanize()} {x.Name}"))})";
+            => $"{string.Join(", ", methodBase.GetParameters().Select(x => $"{x.ParameterType.Humanize()} {x.Name}"))}";
 
         public static string Humanize(this Type type)
         {

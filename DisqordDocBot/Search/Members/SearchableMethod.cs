@@ -15,8 +15,11 @@ namespace DisqordDocBot.Search
 
         public override LocalEmbedBuilder CreateInfoEmbed() 
             => base.CreateInfoEmbed()
-                .AddField("Arguments", Markdown.Code(Info.CreateArgString()))
+                .AddField("Arguments", Markdown.Code(CreateArgString()))
                 .AddField("Return Type", Markdown.Code(Info.ReturnType.Humanize()));
+
+        protected virtual string CreateArgString()
+            => $"({Info.CreateArgString()})";
 
         public override string ToString() 
             => $"Method: {base.ToString()}";

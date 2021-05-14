@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Disqord;
 using DisqordDocBot.Extensions;
+using DisqordDocBot.Services;
 
 namespace DisqordDocBot.Search
 {
@@ -13,10 +14,13 @@ namespace DisqordDocBot.Search
         
         public IReadOnlyList<SearchableMember> Members { get; }
         
-        public SearchableType(TypeInfo info)
+        public SearchableType(TypeInfo info, IEnumerable<MethodInfo> extensionMethods)
         {
             Info = info;
-            Members = info.GetAllMembers().Select(x => SearchableMember.Create(x, this)).ToList();
+            Members = info.GetAllMembers().Select(x => SearchableMember.Create(x, this))
+                .Concat(extensionMethods.Select(x => SearchableMember.Create(x, this)))
+                .ToList();
+
         }
 
         public int Priority => Global.TypePriority;
