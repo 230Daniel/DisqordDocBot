@@ -16,8 +16,6 @@ namespace DisqordDocBot.Services
         public DocSearchService(SearchService searchService, ILogger<DocSearchService> logger, DiscordClientBase client) : base(logger, client)
         {
             _searchService = searchService;
-            client.MessageReceived += HandleDocSearch;
-            
         }
 
         protected override ValueTask OnReady(ReadyEventArgs e)
@@ -26,7 +24,8 @@ namespace DisqordDocBot.Services
             return ValueTask.CompletedTask;
         }
 
-        private async ValueTask HandleDocSearch(object sender, MessageReceivedEventArgs e)
+
+        protected override async ValueTask OnMessageReceived(MessageReceivedEventArgs e)
         {
             if (e.Member.IsBot)
                 return;
