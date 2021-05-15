@@ -14,8 +14,7 @@ namespace DisqordDocBot.Services
         private readonly ILogger<SearchService> _logger;
         private readonly List<ISearchable> _allSearchables;
         private readonly List<SearchableType> _searchableTypes;
-
-        // Add search cache hear
+        
         public SearchService(TypeLoaderService typeLoaderService, ILogger<SearchService> logger)
         {
             _typeLoaderService = typeLoaderService;
