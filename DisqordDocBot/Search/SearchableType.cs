@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Disqord;
 using DisqordDocBot.Extensions;
-using DisqordDocBot.Services;
 
 namespace DisqordDocBot.Search
 {
@@ -62,21 +61,20 @@ namespace DisqordDocBot.Search
                 if (displayMethods.Count == 3 && displayProperties.Count == 3)
                     break;
 
-                if (displayMethods.Count < 3 && member is SearchableMethod method)
+                if (displayMethods.Count < 3 && member is SearchableMethod method && !displayMethods.Contains(method.Info.Name))
                     displayMethods.Add(method.Info.Name);
-                else if (displayProperties.Count < 3 && member is SearchableProperty property)
+                else if (displayProperties.Count < 3 && member is SearchableProperty property && !displayProperties.Contains(property.Info.Name))
                     displayProperties.Add(property.Info.Name);
             }
-
             
             if (displayProperties.Count > 0)
             {
-                eb.AddInlineField("Properties", string.Join("\n", displayProperties));
+                eb.AddInlineCodeBlockField("Properties", string.Join("\n", displayProperties));
                 eb.AddInlineBlankField();
             }
 
             if (displayMethods.Count > 0)
-                eb.AddInlineField("Methods", string.Join('\n', displayMethods));
+                eb.AddInlineCodeBlockField("Methods", string.Join('\n', displayMethods));
             
             return eb;
         }

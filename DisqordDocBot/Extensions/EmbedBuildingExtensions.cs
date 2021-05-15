@@ -49,5 +49,17 @@ namespace DisqordDocBot.Extensions
         
         public static LocalEmbedBuilder AddInlineBlankField(this LocalEmbedBuilder eb)
             => eb.AddBlankField(true);
+        
+        public static LocalEmbedBuilder AddCodeBlockField(this LocalEmbedBuilder eb, string name, string value)
+            => eb.AddField(name, Markdown.CodeBlock("csharp", value));
+        
+        public static LocalEmbedBuilder AddCodeBlockField(this LocalEmbedBuilder eb, string name, object value)
+            => eb.AddField(name, Markdown.CodeBlock("csharp", value.ToString()));
+        
+        public static LocalEmbedBuilder AddInlineCodeBlockField(this LocalEmbedBuilder eb, string name, string value)
+            => eb.AddField(name, Markdown.CodeBlock("csharp", value), true);
+        
+        public static LocalEmbedBuilder AddInlineCodeBlockField(this LocalEmbedBuilder eb, string name, object value)
+            => eb.AddField(name, Markdown.CodeBlock("csharp", value.ToString()), true);
     }
 }

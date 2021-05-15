@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Disqord;
 using DisqordDocBot.Extensions;
@@ -40,7 +41,7 @@ namespace DisqordDocBot.Search
         }
 
         public override string ToString() 
-            => Info.DeclaringType is null ? Info.Name : $"{Parent.Info.Name}.{Info.Name}";
+            => Info.DeclaringType is null ? Info.Name : $"{Parent.Info.Humanize()}.{Info.Name.Split('.').Last()}";
 
         public static SearchableMember Create(MemberInfo info, SearchableType parent)
         {

@@ -23,8 +23,8 @@ namespace DisqordDocBot.Search
                 // do some quick black magic
                 var method = Info.EventHandlerType.GetMethod("Invoke");
                 
-                eb.AddField("Arguments", Markdown.Code($"({method.CreateArgString()})"));
-                eb.AddField("Return Type", Markdown.Code(method!.ReturnType.Humanize()));
+                eb.AddCodeBlockField("Arguments", $"({method.CreateArgString()})");
+                eb.AddCodeBlockField("Return Type", method!.ReturnType.Humanize());
             }
 
             return eb;

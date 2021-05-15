@@ -8,7 +8,7 @@ namespace DisqordDocBot.Search
         public SearchableExtensionMethod(MethodInfo info, SearchableType parent) : base(info, parent) { }
 
         protected override string CreateArgString()
-            => $"(this {Info.CreateArgString()})";
+            => $"({Info.CreateArgString()})";
 
         public override string ToString() 
         => $"Extension {base.ToString()}";

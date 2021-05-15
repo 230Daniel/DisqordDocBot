@@ -13,10 +13,14 @@ namespace DisqordDocBot.Search
             Info = info;
         }
 
-        public override LocalEmbedBuilder CreateInfoEmbed() 
-            => base.CreateInfoEmbed()
-                .AddField("Arguments", Markdown.Code(CreateArgString()))
-                .AddField("Return Type", Markdown.Code(Info.ReturnType.Humanize()));
+        public override LocalEmbedBuilder CreateInfoEmbed()
+        {
+            var eb = base.CreateInfoEmbed()
+                .AddCodeBlockField("Arguments", CreateArgString())
+                .AddCodeBlockField("Return Type", Info.ReturnType.Humanize());
+
+            return eb;
+        }
 
         protected virtual string CreateArgString()
             => $"({Info.CreateArgString()})";

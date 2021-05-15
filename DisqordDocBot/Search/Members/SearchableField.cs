@@ -17,12 +17,11 @@ namespace DisqordDocBot.Search
         public override LocalEmbedBuilder CreateInfoEmbed()
         {
             var eb = base.CreateInfoEmbed().AddField("Type", Info.FieldType.Name);
-            
-            
+
             if (Info.IsConstantField() && Info.GetRawConstantValue() is { } value)
-                eb.AddField("Value: ", value);
+                eb.AddCodeBlockField("Value", value);
             else if (Info.IsBootlegConstantField())
-                eb.AddField("Value", Info.GetValue(null));
+                eb.AddCodeBlockField("Value", Info.GetValue(null));
             
             return eb;
         }

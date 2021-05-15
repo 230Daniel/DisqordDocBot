@@ -9,7 +9,7 @@ namespace DisqordDocBot.Extensions
     public static class ReflectionExtensions
     {
         private const string DisqordNamespace = "Disqord";
-        private const char GenericNameCharacter = '`';
+        private const BindingFlags SearchFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
         public static bool IsDisqordType(this TypeInfo typeInfo)
         {
@@ -24,9 +24,9 @@ namespace DisqordDocBot.Extensions
         {
             var members = new List<MemberInfo>();
             members.AddRange(typeInfo
-                .GetMembers(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
+                .GetMembers(SearchFlags)
                 .Except(typeInfo.GetAllBackingMethods()));
-            
+
             // interface members dont include members implemented from other interfaces
             if (typeInfo.IsInterface)
             {
@@ -39,8 +39,8 @@ namespace DisqordDocBot.Extensions
 
         public static IReadOnlyList<MethodInfo> GetAllBackingMethods(this TypeInfo typeInfo)
         {
-            var properties = typeInfo.GetProperties();
-            var events = typeInfo.GetEvents();
+            var properties = typeInfo.GetProperties(SearchFlags);
+            var events = typeInfo.GetEvents(SearchFlags);
             var backingMethods = new List<MethodInfo>();
 
             foreach (var property in properties)
@@ -67,25 +67,6 @@ namespace DisqordDocBot.Extensions
             return backingMethods;
         }
 
-        // public static IReadOnlyList<MethodInfo> GetAllExtensionMethods(this Type typeToSearch, IReadOnlyList<TypeInfo> typesToSearch)
-        // {
-        //     var extensionMethods = new List<MethodInfo>();
-        //     foreach (var type in typesToSearch)
-        //     {
-        //         // check for static
-        //         if (!(type.IsAbstract && type.IsSealed && !type.IsNested))
-        //             continue;
-        //
-        //         var methods = type.GetMethods();
-        //         extensionMethods.AddRange(methods.Where
-        //             (x => x.IsDefined(typeof(ExtensionAttribute), false) &&
-        //                   x.GetParameters().FirstOrDefault() is { } param && 
-        //                   typeToSearch.IsAssignableTo(param.ParameterType)));
-        //     }
-        //
-        //     return extensionMethods;
-        // }
-
         public static IEnumerable<MethodInfo> GetExtensionMethodsFromType(this Type type)
         {
             // check for static
@@ -96,29 +77,15 @@ namespace DisqordDocBot.Extensions
             return methods.Where(x => x.IsExtensionMethod());
         }
 
-        public static bool IsExtensionMethod(this MethodInfo methodInfo)
-            => methodInfo.IsDefined(typeof(ExtensionAttribute), false) &&
-               methodInfo.GetParameters().FirstOrDefault() is { };
-        
-        
+        public static bool IsExtensionMethod(this MethodBase methodBase)
+            => methodBase.IsDefined(typeof(ExtensionAttribute), false) &&
+               methodBase.GetParameters().FirstOrDefault() is { };
+
         public static bool IsConstantField(this FieldInfo info)
             => info.IsLiteral && !info.IsInitOnly;
         
         public static bool IsBootlegConstantField(this FieldInfo info)
             => info.IsStatic && !info.IsLiteral && info.IsInitOnly;
-
-        public static string CreateArgString(this MethodBase methodBase)
-            => $"{string.Join(", ", methodBase.GetParameters().Select(x => $"{x.ParameterType.Humanize()} {x.Name}"))}";
-
-        public static string Humanize(this Type type)
-        {
-            if (type.IsGenericType)
-            {
-                var humanName = type.Name[..type.Name.IndexOf(GenericNameCharacter)];
-                return $"{humanName}<{string.Join(", ", type.GenericTypeArguments.Select(x => x.Humanize()))}>";
-            }
-
-            return type.Name;
-        }
+        
     }
 }

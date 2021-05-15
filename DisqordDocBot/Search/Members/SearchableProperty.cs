@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using Disqord;
 using DisqordDocBot.Extensions;
 
@@ -16,7 +17,22 @@ namespace DisqordDocBot.Search
         public override string ToString() 
             => $"Property: {base.ToString()}";
 
-        public override LocalEmbedBuilder CreateInfoEmbed() 
-            => base.CreateInfoEmbed().AddField("Type", Info.PropertyType.Humanize());
+        public override LocalEmbedBuilder CreateInfoEmbed() => 
+            base.CreateInfoEmbed()
+                .AddCodeBlockField("Accessors", BuildAccessorString())
+                .AddCodeBlockField("Type", Info.PropertyType.Humanize());
+
+        private string BuildAccessorString()
+        {
+            var sb = new StringBuilder("{ ");
+
+            if (Info.CanRead)
+                sb.Append("get; ");
+
+            if (Info.CanWrite)
+                sb.Append("set; ");
+
+            return sb.Append('}').ToString();
+        }
     }
 }
