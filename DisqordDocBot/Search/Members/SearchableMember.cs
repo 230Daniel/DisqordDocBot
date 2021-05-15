@@ -8,11 +8,10 @@ namespace DisqordDocBot.Search
     public abstract class SearchableMember : ISearchable
     {
         public SearchableType Parent { get; }
-        public virtual MemberInfo Info { get; }
+        public abstract MemberInfo Info { get; }
 
-        protected SearchableMember(MemberInfo info, SearchableType parent)
+        protected SearchableMember(SearchableType parent)
         {
-            Info = info;
             Parent = parent;
         }
 

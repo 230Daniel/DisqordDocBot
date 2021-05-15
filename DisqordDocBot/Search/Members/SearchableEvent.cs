@@ -9,7 +9,7 @@ namespace DisqordDocBot.Search
         public override EventInfo Info { get; }
 
         public SearchableEvent(EventInfo info, SearchableType parent)
-            : base(info, parent)
+            : base(parent)
         {
             Info = info;
         }

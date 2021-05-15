@@ -9,7 +9,7 @@ namespace DisqordDocBot.Search
         public override ConstructorInfo Info { get; }
 
         public SearchableConstructor(ConstructorInfo info, SearchableType parent)
-            : base(info, parent)
+            : base(parent)
         {
             Info = info;
         }        

@@ -8,7 +8,7 @@ namespace DisqordDocBot.Search
     {
         public override PropertyInfo Info { get; }
 
-        public SearchableProperty(PropertyInfo info, SearchableType parent) : base(info, parent)
+        public SearchableProperty(PropertyInfo info, SearchableType parent) : base(parent)
         {
             Info = info;
         }

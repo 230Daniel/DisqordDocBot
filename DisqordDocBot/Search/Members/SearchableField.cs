@@ -9,7 +9,7 @@ namespace DisqordDocBot.Search
         public override FieldInfo Info { get; }
 
         public SearchableField(FieldInfo info, SearchableType parent)
-            : base(info, parent)
+            : base(parent)
         {
             Info = info;
         }
