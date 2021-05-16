@@ -42,6 +42,8 @@ namespace DisqordDocBot.Commands.Modules
                                  "`tag remove [name...]` - Remove a tag\n" +
                                  "`tag claim [name...]` - Claim a stale tag\n" +
                                  "`tag transfer [name] [member...]` - Transfer ownership of a tag\n" +
+                                 "`tag clone [name] [new name...]` - Clone a tag with a new name\n" +
+                                 "`tag clone [name] [server id] (new name...)` - Clone a tag to another server\n" +
                                  admin));
         }
 
@@ -201,7 +203,7 @@ namespace DisqordDocBot.Commands.Modules
         }
 
         [Command("transfer")]
-        public async Task<DiscordCommandResult> Transfer(string name, [RequireNotBot] IMember member)
+        public async Task<DiscordCommandResult> Transfer(string name, [Remainder] [RequireNotBot] IMember member)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
@@ -213,6 +215,64 @@ namespace DisqordDocBot.Commands.Modules
             await _tagService.UpdateTagAsync(tag);
             
             return Response($"Ownership of the tag \"{name}\" was successfully transfered to {member.Mention}.");
+        }
+        
+        [Command("clone")]
+        public async Task<DiscordCommandResult> Clone(string name, [Remainder] string newName)
+        {
+            var tag = await _tagService.GetTagAsync(Context.GuildId, name);
+            if (tag is null) return await TagNotFoundResponse(name);
+
+            var otherTag = await _tagService.GetTagAsync(Context.GuildId, newName);
+            if(otherTag is not null)
+                return Response($"The tag \"{newName}\" already exists, please choose another name.");
+
+            otherTag = new Tag
+            {
+                GuildId = Context.GuildId,
+                MemberId = Context.Message.Author.Id,
+                Name = newName,
+                Content = tag.Content,
+                CreatedAt = DateTimeOffset.UtcNow,
+                EditedAt = DateTimeOffset.UtcNow
+            };
+            await _tagService.CreateTagAsync(otherTag);
+            
+            return Response($"The tag \"{name}\" was cloned successfully to \"{newName}\".");
+        }
+        
+        [Command("clone")]
+        public async Task<DiscordCommandResult> Clone(string name, Snowflake guildId, [Remainder] string newName = null)
+        {
+            newName ??= name;
+            
+            var tag = await _tagService.GetTagAsync(Context.GuildId, name);
+            if (tag is null) return await TagNotFoundResponse(name);
+            
+            IGuild guild = Context.Bot.GetGuild(guildId);
+            IMember member = guild is null ? null : 
+                guild.GetMember(Context.Message.Author.Id) ?? 
+                await guild.FetchMemberAsync(Context.Message.Author.Id);
+
+            if (guild is null || member is null)
+                return Response($"I couldn't find a guild with id {guildId}.");
+            
+            var otherTag = await _tagService.GetTagAsync(guild.Id, newName);
+            if(otherTag is not null)
+                return Response($"The tag \"{newName}\" already exists in {guild.Name}, please choose another name.");
+
+            otherTag = new Tag
+            {
+                GuildId = guild.Id,
+                MemberId = Context.Message.Author.Id,
+                Name = newName,
+                Content = tag.Content,
+                CreatedAt = DateTimeOffset.UtcNow,
+                EditedAt = DateTimeOffset.UtcNow
+            };
+            await _tagService.CreateTagAsync(otherTag);
+            
+            return Response($"The tag \"{name}\" was cloned successfully to \"{newName}\" in {guild.Name}.");
         }
 
         private async Task<DiscordCommandResult> TagNotFoundResponse(string name)
