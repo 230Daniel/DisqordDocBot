@@ -4,6 +4,7 @@ using Disqord.Bot.Hosting;
 using Disqord.Gateway;
 using DisqordDocBot.EFCore;
 using DisqordDocBot.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -44,9 +45,17 @@ namespace DisqordDocBot
                 {
                     bot.Token = context.Configuration["discord:token"];
                     bot.Intents = GatewayIntents.Recommended;
-                    bot.Prefixes = context.Configuration.GetSection("discord:prefixes").Get<string[]>();
                 })
                 .Build();
+            
+            using (var scope = host.Services.CreateScope())
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                var context = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>().CreateDbContext();
+                logger.LogInformation("Migrating database....");
+                await context.Database.MigrateAsync();
+                logger.LogInformation("Done migrating database.");
+            }
             
             using (host)
             {

@@ -10,7 +10,7 @@ namespace DisqordDocBot
         public static readonly string[] ForbiddenTagNames = new[] { "create", "" };
 
         public static readonly Snowflake AuthorId = 332675511161585666;
-        public static readonly Snowflake[] ContributorIds = {608143610415939638};
+        public static readonly Snowflake[] ContributorIds = {608143610415939638, 218613903653863427};
         
         public const int NamespacePriority = 2;
         public const int TypePriority = 1;
