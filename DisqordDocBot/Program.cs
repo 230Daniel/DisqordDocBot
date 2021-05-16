@@ -45,6 +45,7 @@ namespace DisqordDocBot
                 {
                     bot.Token = context.Configuration["discord:token"];
                     bot.Intents = GatewayIntents.Recommended;
+                    bot.Prefixes = context.Configuration.GetSection("discord:prefixes").Get<string[]>();
                 })
                 .Build();
             
