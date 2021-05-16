@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Disqord.Bot.Hosting;
 using Disqord.Gateway;
+using DisqordDocBot.EFCore;
+using DisqordDocBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,8 +16,6 @@ namespace DisqordDocBot
 {
     class Program
     {
-        private const string ConfigPath = "./config.json";
-        
         public static async Task Main(string[] args)
         {
             var host = new HostBuilder()
@@ -32,11 +32,19 @@ namespace DisqordDocBot
                     x.Services.Remove(x.Services.First(x => x.ServiceType == typeof(ILogger<>)));
                     x.Services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
                 })
-                .ConfigureHostConfiguration(configuration => configuration.AddJsonFile(ConfigPath))
+                .ConfigureHostConfiguration(configuration => configuration.AddJsonFile(Global.ConfigPath))
+                .ConfigureServices(((context, services) =>
+                {
+                    services.AddDbContextFactory<DatabaseContext>();
+                    services.AddSingleton<TypeLoaderService>();
+                    services.AddSingleton<SearchService>();
+                    services.AddSingleton<TagService>();
+                } ))
                 .ConfigureDiscordBot((context, bot) =>
                 {
                     bot.Token = context.Configuration["discord:token"];
-                    bot.Intents = GatewayIntents.Unprivileged;
+                    bot.Intents = GatewayIntents.Recommended;
+                    bot.Prefixes = context.Configuration.GetSection("discord:prefixes").Get<string[]>();
                 })
                 .Build();
             
