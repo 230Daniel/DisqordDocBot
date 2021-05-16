@@ -35,8 +35,26 @@ namespace DisqordDocBot.Services
         {
             if (_documentation.TryGetValue(memberInfo.GetDocumentationKey(), out var summary))
                 return summary;
+            else
+            {
+                if (memberInfo.DeclaringType is { } declaringType)
+                {
+                    var types = declaringType.GetAllComposingTypes();
 
-            return string.Empty;
+                    foreach (var type in types)
+                    {
+                        var members = type.GetMember(memberInfo.Name);
+                        foreach (var member in members)
+                        {
+                            if (_documentation.TryGetValue(member.GetDocumentationKey(), out var inheritedSummary))
+                                return inheritedSummary;
+                        }
+                        
+                    }
+                }
+            }
+
+            return "Could not find a summary for this item.";
         }
 
         private IEnumerable<string> GetDisqordXmlDocPaths()

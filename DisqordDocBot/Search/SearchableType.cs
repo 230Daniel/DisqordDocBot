@@ -92,6 +92,6 @@ namespace DisqordDocBot.Search
         }
 
         public override string ToString()
-            => Info.IsEnum ? $"Enum: {Info.FullName}" : $"Type: {Info.FullName}";
+            => Info.IsEnum ? $"Enum: {Info.FullName}" : $"Type: {Info.Humanize()}";
     }
 }

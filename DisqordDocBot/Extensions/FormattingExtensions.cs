@@ -24,7 +24,7 @@ namespace DisqordDocBot.Extensions
         {
             if (type.IsGenericType)
             {
-                var humanName = type.Name[..type.Name.IndexOf(Global.GenericNameCharacter)];
+                var humanName = type.Name.Split(Global.GenericNameCharacter).First();
                 return $"{humanName}<{string.Join(", ", type.GetGenericArguments().Select(x => x.Humanize()))}>";
             }
 
@@ -47,7 +47,7 @@ namespace DisqordDocBot.Extensions
         private static string GetDocumentationKeyForMethod(this MethodBase methodInfo)
         {
             var sb = new StringBuilder();
-            sb.Append($"M:{methodInfo.DeclaringType?.FullName}.");
+            sb.Append($"M:{methodInfo.DeclaringType?.FullName?.Split(Global.GenericNameCharacter).First()}.");
             sb.Append(methodInfo is not ConstructorInfo ? $"{methodInfo.Name}" : "#ctor");
 
             var genericArguments = Array.Empty<Type>();
