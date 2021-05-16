@@ -32,10 +32,11 @@ namespace DisqordDocBot.Search
         {
             if (string.Equals(query, Info.Name, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.FullMatch;
-            else if(Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            
+            if(Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.PartialMatch;
-            else
-                return RelevanceScore.NoMatch;
+            
+            return RelevanceScore.NoMatch;
         }
 
         public SearchableMember SearchMembers(string query)
@@ -60,25 +61,32 @@ namespace DisqordDocBot.Search
 
             var displayMethods = new List<string>();
             var displayProperties = new List<string>();
+            var propertyCount = 0;
+            var methodCount = 0;
             foreach (var member in Members)
             {
-                if (displayMethods.Count == 3 && displayProperties.Count == 3)
-                    break;
-
-                if (displayMethods.Count < 3 && member is SearchableMethod method && !displayMethods.Contains(method.Info.Name))
-                    displayMethods.Add(method.Info.Name);
-                else if (displayProperties.Count < 3 && member is SearchableProperty property && !displayProperties.Contains(property.Info.Name))
-                    displayProperties.Add(property.Info.Name);
+                if (member is SearchableMethod method)
+                {
+                    if (displayMethods.Count < 3 && !displayMethods.Contains(method.Info.Name))
+                        displayMethods.Add(method.Info.Name);
+                    methodCount++;
+                }
+                else if (member is SearchableProperty property)
+                {
+                    if (displayProperties.Count < 3 &&!displayProperties.Contains(property.Info.Name))
+                        displayProperties.Add(property.Info.Name);
+                    propertyCount++;
+                }
             }
-            
+
             if (displayProperties.Count > 0)
             {
-                eb.AddInlineCodeBlockField("Properties", string.Join("\n", displayProperties));
+                eb.AddInlineCodeBlockField($"Properties ({propertyCount})", string.Join("\n", displayProperties));
                 eb.AddInlineBlankField();
             }
 
             if (displayMethods.Count > 0)
-                eb.AddInlineCodeBlockField("Methods", string.Join('\n', displayMethods));
+                eb.AddInlineCodeBlockField($"Methods ({methodCount})", string.Join('\n', displayMethods));
             
             return eb;
         }

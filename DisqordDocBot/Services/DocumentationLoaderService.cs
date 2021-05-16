@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
+using System.Threading.Tasks; 
 // using System.Xml;
 using System.Xml.Linq;
 using Disqord.Bot;
@@ -70,25 +69,53 @@ namespace DisqordDocBot.Services
 
         private void LoadDocs()
         {
-            var xmlDocs = GetDisqordXmlDocPaths().Select(x =>
-            {
-                var xmlDoc = new XmlDocument();
-                xmlDoc.Load(x);
-                return xmlDoc;
-            });
+            var xmlDocs = GetDisqordXmlDocPaths().Select(XDocument.Load);
             
             foreach (var xmlDoc in xmlDocs)
             {
-                var nodes = xmlDoc.SelectNodes("/doc/members/member");
-            
-                foreach (XmlNode node in nodes)
+                foreach (XElement element in xmlDoc.Descendants("member"))
                 {
-                    var childNodes = node.ChildNodes.Cast<XmlNode>();
-        
-                    if (childNodes.FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
+                    var name = element.Attributes().FirstOrDefault(x => x.Name == "name");
+                    
+                    if (name is null)
+                        continue;
+                    
+                    if (element.Descendants().FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
                     {
-                        Console.WriteLine(string.Join(", ", summaryNode.ChildNodes.OfType<XmlNode>().Select(x => x.Name)));
-                        _documentation.Add(node.Attributes.GetNamedItem("name").Value, summaryNode.InnerXml.Trim());
+                        StringBuilder docs = new StringBuilder();
+                        var skipNext = false;
+
+                        foreach (var childNode in summaryNode.DescendantNodes())
+                        {
+                            if (skipNext)
+                            {
+                                skipNext = false;
+                                continue;
+                            }
+                            
+                            if (childNode is XElement childElement)
+                            {
+                                if (childElement.Name == "see")
+                                {
+                                    if (childElement.FirstAttribute?.Name == "cref")
+                                    {
+                                        var val = childElement.FirstAttribute.Value.Split(".");
+                                        
+                                        docs.Append($"`{(val[0].StartsWith("T:") ? val.Last() : string.Join(".", val.TakeLast(2)))}`");
+                                    }
+                                    else if (childElement.FirstAttribute?.Name == "langword")
+                                        docs.Append($"*`{childElement.FirstAttribute.Value}`*");
+                                }
+                                else if (childElement.Name == "c")
+                                {
+                                    docs.Append($"**{childElement.Value}**");
+                                    skipNext = true;
+                                }
+                            }
+                            else
+                                docs.Append(childNode);}
+                        
+                        _documentation.Add(name.Value, docs.ToString());
                     }
                 }    
             }
