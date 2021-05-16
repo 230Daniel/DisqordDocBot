@@ -31,7 +31,7 @@ namespace DisqordDocBot.Commands.Modules
         [Command("")]
         public DiscordCommandResult Help()
         {
-            var admin = (Context.Message.Author as IMember).GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
+            var admin = Context.Author.GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
 
             return Response(new LocalEmbedBuilder()
                 .WithDefaultColor()
@@ -160,7 +160,7 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+            if (tag.MemberId != Context.Message.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             tag.Content = content;
@@ -177,7 +177,7 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+            if (tag.MemberId != Context.Message.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             await _tagService.RemoveTagAsync(tag);
@@ -209,7 +209,7 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
             
-            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+            if (tag.MemberId != Context.Message.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             tag.MemberId = member.Id;
