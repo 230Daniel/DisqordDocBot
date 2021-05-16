@@ -11,7 +11,6 @@ using Disqord.Rest;
 using DisqordDocBot.Extensions;
 using DisqordDocBot.Services;
 using DisqordDocBot.Tags;
-using Microsoft.EntityFrameworkCore;
 using Qmmands;
 
 namespace DisqordDocBot.Commands.Modules
