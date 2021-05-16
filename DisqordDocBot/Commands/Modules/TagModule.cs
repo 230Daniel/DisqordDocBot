@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Disqord;
 using Disqord.Bot;
+using Disqord.Extensions.Interactivity;
+using Disqord.Extensions.Interactivity.Menus.Paged;
 using Disqord.Gateway;
 using Disqord.Rest;
 using DisqordDocBot.Extensions;
@@ -24,13 +27,22 @@ namespace DisqordDocBot.Commands.Modules
         }
 
         [Command("")]
-        public async Task<DiscordCommandResult> Help()
+        public DiscordCommandResult Help()
         {
+            string admin = (Context.Message.Author as IMember).GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
+
             return Response(new LocalEmbedBuilder()
                 .WithDefaultColor()
                 .WithTitle("Tag")
-                .WithDescription("`tag [name]` - View a tag\n" +
-                                 "`tag create [name] [content...]` - Create a new tag"));
+                .WithDescription("`tag [name]` - Use a tag\n" +
+                                 "`tag list` - List all tags in the server\n" +
+                                 "`tag info [name...]` - Get information about a tag\n" +
+                                 "`tag create [name] [content...]` - Create a new tag\n" +
+                                 "`tag edit [name] [content...]` - Edit a tag\n" +
+                                 "`tag remove [name...]` - Remove a tag\n" +
+                                 "`tag claim [name...]` - Claim a stale tag\n" +
+                                 "`tag transfer [name] [member...]` - Transfer ownership of a tag\n" +
+                                 admin));
         }
 
         [Command("")]
@@ -39,11 +51,84 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
             
-            tag.Uses += 1;
+            tag.Uses ++;
             await _tagService.UpdateTagAsync(tag);
             return Response(tag.Content);
         }
 
+        [Command("list")]
+        public async Task List()
+        {
+            var tags = await _tagService.GetTagsAsync(Context.GuildId);
+            tags = tags.OrderByDescending(x => x.Uses).ToList();
+
+            int i = 0;
+            var tagStrings = tags.Select(x =>
+            {
+                i++;
+                return $"`#{i}` {x.Name} ({Mention.User(x.MemberId)})\n";
+            });
+            var stringPages = new List<string>();
+            
+            string current = "";
+            foreach (string tagString in tagStrings)
+            {
+                if((current + tagString).Length <= 2048)
+                    current += tagString;
+                else
+                {
+                    stringPages.Add(current);
+                    current = tagString;
+                }
+            }
+            if(!string.IsNullOrWhiteSpace(current))
+                stringPages.Add(current);
+
+            var pages = stringPages.Select(x => new Page(
+                new LocalEmbedBuilder()
+                    .WithDefaultColor()
+                    .WithTitle("Tags")
+                    .WithDescription(x)
+                    .WithFooter($"Page {stringPages.IndexOf(x) + 1} of {stringPages.Count}")))
+                .ToList();
+
+            if (pages.Count == 0)
+            {
+                await Response("There are no tags for this server.");
+                return;
+            }
+            if (pages.Count == 1)
+            {
+                await Response(pages[0].Embed);
+                return;
+            }
+            
+            IPageProvider pageProvider = new DefaultPageProvider(pages);
+            PagedMenu menu = new(Context.Author.Id, pageProvider);
+            InteractivityExtension ext = Context.Bot.GetRequiredExtension<InteractivityExtension>();
+            await ext.StartMenuAsync(Context.Channel.Id, menu);
+        }
+        
+        [Command("info")]
+        public async Task<DiscordCommandResult> Info([Remainder] string name)
+        {
+            var tag = await _tagService.GetTagAsync(Context.GuildId, name);
+            if (tag is null) return await TagNotFoundResponse(name);
+            
+            IMember member = Context.Guild.GetMember(tag.MemberId) ?? 
+                             await Context.Guild.FetchMemberAsync(tag.MemberId);
+
+            return Response(new LocalEmbedBuilder()
+                .WithDefaultColor()
+                .WithTitle($"Tag: {tag.Name}")
+                .AddField("Owner", member is null ? $"{tag.MemberId} (not in server)" : member.Mention, true)
+                .AddField("Uses", tag.Uses, true)
+                .AddField("Rank", $"#{await _tagService.GetTagRankAsync(tag)}", true)
+                .AddField("Created at", $"{tag.CreatedAt:yyyy-MM-dd}", true)
+                .AddField("Edited at", $"{tag.EditedAt:yyyy-MM-dd}", true)
+                .AddField("Revisions", tag.Revisions, true));
+        }
+        
         [Command("create")]
         public async Task<DiscordCommandResult> Create(string name, [Remainder] string value)
         {
@@ -58,7 +143,8 @@ namespace DisqordDocBot.Commands.Modules
                 MemberId = Context.Message.Author.Id,
                 Name = name,
                 Content = value,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow,
+                EditedAt = DateTimeOffset.UtcNow
             };
             await _tagService.CreateTagAsync(tag);
             
@@ -71,31 +157,33 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.CurrentMember.Id)
-                Response($"The tag \"{name}\" does not belong to you.");
+            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+                return Response($"The tag \"{name}\" does not belong to you.");
 
             tag.Content = content;
+            tag.EditedAt = DateTimeOffset.UtcNow;
+            tag.Revisions++;
             await _tagService.UpdateTagAsync(tag);
             
             return Response($"The tag \"{name}\" was edited successfully.");
         }
-        
+
         [Command("remove")]
-        public async Task<DiscordCommandResult> Remove(string name)
+        public async Task<DiscordCommandResult> Remove([Remainder] string name)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.CurrentMember.Id)
-                Response($"The tag \"{name}\" does not belong to you.");
+            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+                return Response($"The tag \"{name}\" does not belong to you.");
 
             await _tagService.RemoveTagAsync(tag);
             
             return Response($"The tag \"{name}\" was removed successfully.");
         }
 
-        [Command("info")]
-        public async Task<DiscordCommandResult> Info(string name)
+        [Command("claim")]
+        public async Task<DiscordCommandResult> Claim([Remainder] string name)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
@@ -103,16 +191,30 @@ namespace DisqordDocBot.Commands.Modules
             IMember member = Context.Guild.GetMember(tag.MemberId) ?? 
                              await Context.Guild.FetchMemberAsync(tag.MemberId);
                 
-            return Response(new LocalEmbedBuilder()
-                .WithDefaultColor()
-                .WithTitle($"Tag: {tag.Name}")
-                .AddField("Owner", member is null ? $"{tag.MemberId} (not in server)" : member.Mention, true)
-                .AddField("Uses", tag.Uses, true)
-                .AddField("Rank", $"#{await _tagService.GetTagRankAsync(tag)}", true)
-                .WithFooter(new LocalEmbedFooterBuilder().WithText("Created at"))
-                .WithTimestamp(tag.CreatedAt));
+            if(member is not null)
+                return Response($"The owner of the tag \"{name}\" is still in the server.");
+
+            tag.MemberId = Context.Message.Author.Id;
+            await _tagService.UpdateTagAsync(tag);
+            
+            return Response($"Ownership of the tag \"{name}\" was successfully transfered to you.");
         }
-        
+
+        [Command("transfer")]
+        public async Task<DiscordCommandResult> Transfer(string name, [RequireNotBot] IMember member)
+        {
+            var tag = await _tagService.GetTagAsync(Context.GuildId, name);
+            if (tag is null) return await TagNotFoundResponse(name);
+            
+            if (tag.MemberId != Context.Message.Author.Id && !(Context.Message.Author as IMember).GetGuildPermissions().ManageGuild)
+                return Response($"The tag \"{name}\" does not belong to you.");
+
+            tag.MemberId = member.Id;
+            await _tagService.UpdateTagAsync(tag);
+            
+            return Response($"Ownership of the tag \"{name}\" was successfully transfered to {member.Mention}.");
+        }
+
         private async Task<DiscordCommandResult> TagNotFoundResponse(string name)
         {
             var closeTags = await _tagService.SearchTagsAsync(Context.GuildId, name);

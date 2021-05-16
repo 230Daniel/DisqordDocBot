@@ -43,7 +43,7 @@ namespace DisqordDocBot
                 .ConfigureDiscordBot((context, bot) =>
                 {
                     bot.Token = context.Configuration["discord:token"];
-                    bot.Intents = GatewayIntents.Unprivileged;
+                    bot.Intents = GatewayIntents.Recommended;
                     bot.Prefixes = context.Configuration.GetSection("discord:prefixes").Get<string[]>();
                 })
                 .Build();
