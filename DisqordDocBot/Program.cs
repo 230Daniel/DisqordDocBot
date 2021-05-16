@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Disqord.Bot.Hosting;
 using Disqord.Gateway;
-using DisqordDocBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,11 +33,6 @@ namespace DisqordDocBot
                     x.Services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
                 })
                 .ConfigureHostConfiguration(configuration => configuration.AddJsonFile(ConfigPath))
-                .ConfigureServices(((context, services) =>
-                {
-                    services.AddSingleton<TypeLoaderService>();
-                    services.AddSingleton<SearchService>();
-                } ))
                 .ConfigureDiscordBot((context, bot) =>
                 {
                     bot.Token = context.Configuration["discord:token"];

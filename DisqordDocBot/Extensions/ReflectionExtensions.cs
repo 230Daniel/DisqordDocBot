@@ -8,7 +8,6 @@ namespace DisqordDocBot.Extensions
 {
     public static class ReflectionExtensions
     {
-        private const string DisqordNamespace = "Disqord";
         private const BindingFlags SearchFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
         public static bool IsDisqordType(this TypeInfo typeInfo)
@@ -16,7 +15,7 @@ namespace DisqordDocBot.Extensions
             if (typeInfo.Namespace is null)
                 return false;
             
-            return typeInfo.Namespace.StartsWith(DisqordNamespace);
+            return typeInfo.Namespace.StartsWith(Global.DisqordNamespace);
         }
 
         // gets all members

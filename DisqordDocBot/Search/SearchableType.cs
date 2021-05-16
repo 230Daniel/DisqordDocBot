@@ -9,17 +9,20 @@ namespace DisqordDocBot.Search
 {
     public class SearchableType : ISearchable
     {
+        public string Summary { get; }
+        
         public TypeInfo Info { get; }
         
         public IReadOnlyList<SearchableMember> Members { get; }
         
-        public SearchableType(TypeInfo info, IEnumerable<MethodInfo> extensionMethods)
+        public SearchableType(TypeInfo info, IEnumerable<MethodInfo> extensionMethods, string summary)
         {
             Info = info;
             Members = info.GetAllMembers().Select(x => SearchableMember.Create(x, this))
                 .Concat(extensionMethods.Select(x => SearchableMember.Create(x, this)))
                 .ToList();
 
+            Summary = summary;
         }
 
         public int Priority => Global.TypePriority;
@@ -52,7 +55,7 @@ namespace DisqordDocBot.Search
             var eb = new LocalEmbedBuilder()
                 .WithDefaultColor()
                 .WithTitle(ToString())
-                .WithDescription("docs here");
+                .WithDescription(Summary);
 
             var displayMethods = new List<string>();
             var displayProperties = new List<string>();
