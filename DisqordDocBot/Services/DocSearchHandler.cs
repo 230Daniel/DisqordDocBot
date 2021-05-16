@@ -20,10 +20,10 @@ namespace DisqordDocBot.Services
         {
             var result = _searchService.GetMostRelevantItem(context.Input.Trim());
             
-                if (result is null)
-                    await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithContent("No results found").Build());
-                else
-                    await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithEmbed(result.CreateInfoEmbed()).Build());
+            if (result is null) 
+                await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithContent("No results found").Build());
+            else 
+                await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithEmbed(result.CreateInfoEmbed()).Build());
         }
     }
 }

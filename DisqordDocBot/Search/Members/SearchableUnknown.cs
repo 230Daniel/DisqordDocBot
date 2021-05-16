@@ -6,8 +6,8 @@ namespace DisqordDocBot.Search
     {
         public override MemberInfo Info { get; }
 
-        public SearchableUnknown(MemberInfo info, SearchableType parent)
-            : base(parent)
+        public SearchableUnknown(MemberInfo info, SearchableType parent, string summary)
+            : base(parent, summary)
         {
             Info = info;
         }

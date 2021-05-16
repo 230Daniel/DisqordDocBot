@@ -8,7 +8,6 @@ namespace DisqordDocBot.Extensions
 {
     public static class ReflectionExtensions
     {
-        private const string DisqordNamespace = "Disqord";
         private const BindingFlags SearchFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
         public static bool IsDisqordType(this TypeInfo typeInfo)
@@ -16,7 +15,7 @@ namespace DisqordDocBot.Extensions
             if (typeInfo.Namespace is null)
                 return false;
             
-            return typeInfo.Namespace.StartsWith(DisqordNamespace);
+            return typeInfo.Namespace.StartsWith(Global.DisqordNamespace);
         }
 
         // gets all members
@@ -26,7 +25,7 @@ namespace DisqordDocBot.Extensions
             members.AddRange(typeInfo
                 .GetMembers(SearchFlags)
                 .Except(typeInfo.GetAllBackingMethods()));
-
+            
             // interface members dont include members implemented from other interfaces
             if (typeInfo.IsInterface)
             {
@@ -37,34 +36,14 @@ namespace DisqordDocBot.Extensions
             return members;
         }
 
-        public static IReadOnlyList<MethodInfo> GetAllBackingMethods(this TypeInfo typeInfo)
+        public static IEnumerable<MemberInfo> GetAllBackingMethods(this TypeInfo typeInfo)
         {
-            var properties = typeInfo.GetProperties(SearchFlags);
-            var events = typeInfo.GetEvents(SearchFlags);
-            var backingMethods = new List<MethodInfo>();
-
-            foreach (var property in properties)
-            {
-                if (property.CanRead)
-                    backingMethods.Add(property.GetMethod);
-                
-                if (property.CanWrite)
-                    backingMethods.Add(property.SetMethod);
-            }
-
-            foreach (var @event in events)
-            {
-                if (@event.AddMethod is not null)
-                    backingMethods.Add(@event.AddMethod);
-                
-                if (@event.RemoveMethod is not null)
-                    backingMethods.Add(@event.RemoveMethod);
-                
-                if (@event.RaiseMethod is not null)
-                    backingMethods.Add(@event.RaiseMethod);
-            }
-
-            return backingMethods;
+            // would love to not string compare everything but explicit interface impls got the best of me
+            return typeInfo.GetMembers(SearchFlags).Where(x => x is MethodInfo && 
+                                                               (x.Name.Contains("get_") ||
+                                                                x.Name.Contains("set_") ||
+                                                                x.Name.Contains("add_") ||
+                                                                x.Name.Contains("remove_")));
         }
 
         public static IEnumerable<MethodInfo> GetExtensionMethodsFromType(this Type type)
@@ -86,6 +65,21 @@ namespace DisqordDocBot.Extensions
         
         public static bool IsBootlegConstantField(this FieldInfo info)
             => info.IsStatic && !info.IsLiteral && info.IsInitOnly;
+
+        public static IReadOnlyList<Type> GetAllComposingTypes(this Type type)
+        {
+            var types = new List<Type>();
+            types.AddRange(type.GetInterfaces());
+
+            var currentType = type;
+            while (currentType.BaseType is not null)
+            {
+                types.Add(currentType.BaseType);
+                currentType = currentType.BaseType;
+            }
+
+            return types;
+        }
         
     }
 }

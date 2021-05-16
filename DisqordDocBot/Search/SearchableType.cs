@@ -4,34 +4,39 @@ using System.Linq;
 using System.Reflection;
 using Disqord;
 using DisqordDocBot.Extensions;
+using DisqordDocBot.Services;
 
 namespace DisqordDocBot.Search
 {
     public class SearchableType : ISearchable
     {
+        public string Summary { get; }
+        
         public TypeInfo Info { get; }
         
         public IReadOnlyList<SearchableMember> Members { get; }
         
-        public SearchableType(TypeInfo info, IEnumerable<MethodInfo> extensionMethods)
+        public SearchableType(TypeInfo info, TypeLoaderService typeLoaderService, DocumentationLoaderService documentationLoaderService)
         {
             Info = info;
-            Members = info.GetAllMembers().Select(x => SearchableMember.Create(x, this))
-                .Concat(extensionMethods.Select(x => SearchableMember.Create(x, this)))
+            Members = info.GetAllMembers().Select(x => SearchableMember.Create(x, this, documentationLoaderService))
+                .Concat(typeLoaderService.ExtensionMethods
+                    .Where(x => info.IsAssignableTo(x.GetParameters().First().ParameterType))
+                    .Select(x => SearchableMember.Create(x, this, documentationLoaderService)))
                 .ToList();
 
+            Summary = documentationLoaderService.GetSummaryFromInfo(info);
         }
-
-        public int Priority => Global.TypePriority;
 
         public RelevanceScore GetRelevanceScore(string query)
         {
             if (string.Equals(query, Info.Name, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.FullMatch;
-            else if(Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            
+            if(Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.PartialMatch;
-            else
-                return RelevanceScore.NoMatch;
+            
+            return RelevanceScore.NoMatch;
         }
 
         public SearchableMember SearchMembers(string query)
@@ -52,34 +57,41 @@ namespace DisqordDocBot.Search
             var eb = new LocalEmbedBuilder()
                 .WithDefaultColor()
                 .WithTitle(ToString())
-                .WithDescription("docs here");
+                .WithDescription(Summary);
 
             var displayMethods = new List<string>();
             var displayProperties = new List<string>();
+            var propertyCount = 0;
+            var methodCount = 0;
             foreach (var member in Members)
             {
-                if (displayMethods.Count == 3 && displayProperties.Count == 3)
-                    break;
-
-                if (displayMethods.Count < 3 && member is SearchableMethod method && !displayMethods.Contains(method.Info.Name))
-                    displayMethods.Add(method.Info.Name);
-                else if (displayProperties.Count < 3 && member is SearchableProperty property && !displayProperties.Contains(property.Info.Name))
-                    displayProperties.Add(property.Info.Name);
+                if (member is SearchableMethod method)
+                {
+                    if (displayMethods.Count < 3 && !displayMethods.Contains(method.Info.Name))
+                        displayMethods.Add(method.Info.Name);
+                    methodCount++;
+                }
+                else if (member is SearchableProperty property)
+                {
+                    if (displayProperties.Count < 3 &&!displayProperties.Contains(property.Info.Name))
+                        displayProperties.Add(property.Info.Name);
+                    propertyCount++;
+                }
             }
-            
+
             if (displayProperties.Count > 0)
             {
-                eb.AddInlineCodeBlockField("Properties", string.Join("\n", displayProperties));
+                eb.AddInlineCodeBlockField($"Properties ({propertyCount})", string.Join("\n", displayProperties));
                 eb.AddInlineBlankField();
             }
 
             if (displayMethods.Count > 0)
-                eb.AddInlineCodeBlockField("Methods", string.Join('\n', displayMethods));
+                eb.AddInlineCodeBlockField($"Methods ({methodCount})", string.Join('\n', displayMethods));
             
             return eb;
         }
 
         public override string ToString()
-            => Info.IsEnum ? $"Enum: {Info.FullName}" : $"Type: {Info.FullName}";
+            => Info.IsEnum ? $"Enum: {Info.FullName}" : $"Type: {Info.Humanize()}";
     }
 }

@@ -8,7 +8,8 @@ namespace DisqordDocBot.Search
     {
         public override MethodInfo Info { get; }
 
-        public SearchableMethod(MethodInfo info, SearchableType parent) : base(parent)
+        public SearchableMethod(MethodInfo info, SearchableType parent, string summary)
+            : base(parent, summary)
         {
             Info = info;
         }
@@ -23,7 +24,7 @@ namespace DisqordDocBot.Search
         }
 
         protected virtual string CreateArgString()
-            => $"({Info.CreateArgString()})";
+            => $"{Info.CreateGenericArgString()}({Info.CreateArgString()})";
 
         public override string ToString() 
             => $"Method: {base.ToString()}";

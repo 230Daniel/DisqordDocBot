@@ -8,13 +8,13 @@ namespace DisqordDocBot.Search
     {
         public override ConstructorInfo Info { get; }
 
-        public SearchableConstructor(ConstructorInfo info, SearchableType parent)
-            : base(parent)
+        public SearchableConstructor(ConstructorInfo info, SearchableType parent, string summary)
+            : base(parent, summary)
         {
             Info = info;
         }        
         public override LocalEmbedBuilder CreateInfoEmbed() 
-            => base.CreateInfoEmbed().AddCodeBlockField("Arguments", Info.CreateArgString());
+            => base.CreateInfoEmbed().AddCodeBlockField("Arguments", $"({Info.CreateArgString()})");
         
         public override string ToString() 
             => $"Constructor: {Info.DeclaringType!.Name}";
