@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
+using System.Threading.Tasks; 
 // using System.Xml;
 using System.Xml.Linq;
 using Disqord.Bot;
@@ -60,25 +60,34 @@ namespace DisqordDocBot.Services
 
         private void LoadDocs()
         {
-            var xmlDocs = GetDisqordXmlDocPaths().Select(x =>
-            {
-                var xmlDoc = new XmlDocument();
-                xmlDoc.Load(x);
-                return xmlDoc;
-            });
+            var xmlDocs = GetDisqordXmlDocPaths().Select(XDocument.Load);
+            
             foreach (var xmlDoc in xmlDocs)
             {
-                var nodes = xmlDoc.SelectNodes("/doc/members/member");
-            
-                foreach (XmlNode node in nodes)
+                foreach (XElement element in xmlDoc.Descendants("member"))
                 {
+                    var name = element.Attributes().FirstOrDefault(x => x.Name == "name");
                     
-                    var childNodes = node.ChildNodes.Cast<XmlNode>();
-        
-                    if (childNodes.FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
+                    if (name is null)
+                        continue;
+                    
+                    if (element.Descendants().FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
                     {
-                        // Logger.LogInformation(summaryNode.ToString());
-                        _documentation.Add(node.Attributes.GetNamedItem("name").Value, summaryNode.InnerXml.Trim());
+                        StringBuilder docs = new StringBuilder();
+
+                        foreach (var childNode in summaryNode.DescendantNodes())
+                        {
+                            if (childNode is XElement childElement && childElement.Name == "see")
+                            {
+                                var attr = childElement.Attributes().FirstOrDefault(x => x.Name == "cref");
+
+                                if (attr != null)
+                                    docs.Append($"`{attr.Value.Split(".").Last()}`");
+                            }
+                            else
+                                docs.Append(childNode);
+                        }
+                        _documentation.Add(name.Value, docs.ToString());
                     }
                 }    
             }
