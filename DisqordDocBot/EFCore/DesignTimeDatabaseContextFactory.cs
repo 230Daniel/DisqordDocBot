@@ -8,7 +8,7 @@ namespace DisqordDocBot.EFCore
     {
         public DatabaseContext CreateDbContext(string[] args) 
         {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile(Global.ConfigPath)
                 .Build();

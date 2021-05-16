@@ -28,7 +28,7 @@ namespace DisqordDocBot.Commands.Modules
         [Command("")]
         public DiscordCommandResult Help()
         {
-            string admin = (Context.Message.Author as IMember).GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
+            var admin = (Context.Message.Author as IMember).GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
 
             return Response(new LocalEmbedBuilder()
                 .WithDefaultColor()
@@ -63,7 +63,7 @@ namespace DisqordDocBot.Commands.Modules
             var tags = await _tagService.GetTagsAsync(Context.GuildId);
             tags = tags.OrderByDescending(x => x.Uses).ToList();
 
-            int i = 0;
+            var i = 0;
             var tagStrings = tags.Select(x =>
             {
                 i++;
@@ -71,8 +71,8 @@ namespace DisqordDocBot.Commands.Modules
             });
             var stringPages = new List<string>();
             
-            string current = "";
-            foreach (string tagString in tagStrings)
+            var current = "";
+            foreach (var tagString in tagStrings)
             {
                 if((current + tagString).Length <= 2048)
                     current += tagString;
@@ -93,20 +93,19 @@ namespace DisqordDocBot.Commands.Modules
                     .WithFooter($"Page {stringPages.IndexOf(x) + 1} of {stringPages.Count}")))
                 .ToList();
 
-            if (pages.Count == 0)
+            switch (pages.Count)
             {
-                await Response("There are no tags for this server.");
-                return;
+                case 0:
+                    await Response("There are no tags for this server.");
+                    return;
+                case 1:
+                    await Response(pages[0].Embed);
+                    return;
             }
-            if (pages.Count == 1)
-            {
-                await Response(pages[0].Embed);
-                return;
-            }
-            
+
             IPageProvider pageProvider = new DefaultPageProvider(pages);
             PagedMenu menu = new(Context.Author.Id, pageProvider);
-            InteractivityExtension ext = Context.Bot.GetRequiredExtension<InteractivityExtension>();
+            var ext = Context.Bot.GetRequiredExtension<InteractivityExtension>();
             await ext.StartMenuAsync(Context.Channel.Id, menu);
         }
         
@@ -116,8 +115,8 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
             
-            IMember member = Context.Guild.GetMember(tag.MemberId) ?? 
-                             await Context.Guild.FetchMemberAsync(tag.MemberId);
+            var member = Context.Guild.GetMember(tag.MemberId) ?? 
+                         await Context.Guild.FetchMemberAsync(tag.MemberId);
 
             return Response(new LocalEmbedBuilder()
                 .WithDefaultColor()
@@ -189,8 +188,8 @@ namespace DisqordDocBot.Commands.Modules
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
             
-            IMember member = Context.Guild.GetMember(tag.MemberId) ?? 
-                             await Context.Guild.FetchMemberAsync(tag.MemberId);
+            var member = Context.Guild.GetMember(tag.MemberId) ?? 
+                         await Context.Guild.FetchMemberAsync(tag.MemberId);
                 
             if(member is not null)
                 return Response($"The owner of the tag \"{name}\" is still in the server.");
@@ -198,7 +197,7 @@ namespace DisqordDocBot.Commands.Modules
             tag.MemberId = Context.Message.Author.Id;
             await _tagService.UpdateTagAsync(tag);
             
-            return Response($"Ownership of the tag \"{name}\" was successfully transfered to you.");
+            return Response($"Ownership of the tag \"{name}\" was successfully transferred to you.");
         }
 
         [Command("transfer")]
@@ -213,7 +212,7 @@ namespace DisqordDocBot.Commands.Modules
             tag.MemberId = member.Id;
             await _tagService.UpdateTagAsync(tag);
             
-            return Response($"Ownership of the tag \"{name}\" was successfully transfered to {member.Mention}.");
+            return Response($"Ownership of the tag \"{name}\" was successfully transferred to {member.Mention}.");
         }
         
         [Command("clone")]
@@ -249,7 +248,7 @@ namespace DisqordDocBot.Commands.Modules
             if (tag is null) return await TagNotFoundResponse(name);
             
             IGuild guild = Context.Bot.GetGuild(guildId);
-            IMember member = guild is null ? null : 
+            var member = guild is null ? null : 
                 guild.GetMember(Context.Message.Author.Id) ?? 
                 await guild.FetchMemberAsync(Context.Message.Author.Id);
 
@@ -279,7 +278,7 @@ namespace DisqordDocBot.Commands.Modules
             var closeTags = await _tagService.SearchTagsAsync(Context.GuildId, name);
             if (closeTags.Count == 0) return Response($"I couldn't find a tag with the name \"{name}\".");
             
-            string didYouMean = " • " + string.Join("\n • ", closeTags.Take(3).Select(x => x.Name));
+            var didYouMean = " • " + string.Join("\n • ", closeTags.Take(3).Select(x => x.Name));
             return Response($"I couldn't find a tag with the name \"{name}\", did you mean...\n{didYouMean}");
         }
     }
