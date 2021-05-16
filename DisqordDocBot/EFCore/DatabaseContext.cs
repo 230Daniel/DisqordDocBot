@@ -19,7 +19,9 @@ namespace DisqordDocBot.EFCore
         }
         
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseNpgsql(_connectionString);
+            => options
+                .UseNpgsql(_connectionString)
+                .UseSnakeCaseNamingConvention();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
