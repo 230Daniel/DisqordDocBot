@@ -74,19 +74,38 @@ namespace DisqordDocBot.Services
                     if (element.Descendants().FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
                     {
                         StringBuilder docs = new StringBuilder();
+                        var skipNext = false;
 
                         foreach (var childNode in summaryNode.DescendantNodes())
                         {
-                            if (childNode is XElement childElement && childElement.Name == "see")
+                            if (skipNext)
                             {
-                                var attr = childElement.Attributes().FirstOrDefault(x => x.Name == "cref");
-
-                                if (attr != null)
-                                    docs.Append($"`{attr.Value.Split(".").Last()}`");
+                                skipNext = false;
+                                continue;
+                            }
+                            
+                            if (childNode is XElement childElement)
+                            {
+                                if (childElement.Name == "see")
+                                {
+                                    if (childElement.FirstAttribute?.Name == "cref")
+                                    {
+                                        var val = childElement.FirstAttribute.Value.Split(".");
+                                        
+                                        docs.Append($"`{(val[0].StartsWith("T:") ? val.Last() : string.Join(".", val.TakeLast(2)))}`");
+                                    }
+                                    else if (childElement.FirstAttribute?.Name == "langword")
+                                        docs.Append($"*`{childElement.FirstAttribute.Value}`*");
+                                }
+                                else if (childElement.Name == "c")
+                                {
+                                    docs.Append($"**{childElement.Value}**");
+                                    skipNext = true;
+                                }
                             }
                             else
-                                docs.Append(childNode);
-                        }
+                                docs.Append(childNode);}
+                        
                         _documentation.Add(name.Value, docs.ToString());
                     }
                 }    
