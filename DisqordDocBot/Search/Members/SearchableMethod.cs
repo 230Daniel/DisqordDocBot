@@ -24,7 +24,7 @@ namespace DisqordDocBot.Search
         }
 
         protected virtual string CreateArgString()
-            => $"({Info.CreateArgString()})";
+            => $"{Info.CreateGenericArgString()}({Info.CreateArgString()})";
 
         public override string ToString() 
             => $"Method: {base.ToString()}";

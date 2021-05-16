@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks; 
-// using System.Xml;
 using System.Xml.Linq;
 using Disqord.Bot;
 using Disqord.Bot.Hosting;
@@ -40,9 +38,6 @@ namespace DisqordDocBot.Services
 
             return string.Empty;
         }
-        
-        // public override Task StartAsync(CancellationToken cancellationToken) 
-        //     => LoadDocsAsync();
 
         private IEnumerable<string> GetDisqordXmlDocPaths()
         {
@@ -56,7 +51,7 @@ namespace DisqordDocBot.Services
 
                 var latestVersion = new DirectoryInfo(directory.FullName)
                     .GetDirectories()
-                    .OrderByDescending(x => int.Parse(x.Name[x.Name.LastIndexOf(DisqordFilenameSeparator, StringComparison.Ordinal)..]))
+                    .OrderBy(x => int.Parse(x.Name[x.Name.LastIndexOf(DisqordFilenameSeparator, StringComparison.Ordinal)..]))
                     .First();
                 
                 var xmlDocPath = new DirectoryInfo(Path.Combine(latestVersion.FullName, "lib/net5.0/")).GetFiles().First(x => x.Extension == ".xml");
@@ -73,17 +68,18 @@ namespace DisqordDocBot.Services
             
             foreach (var xmlDoc in xmlDocs)
             {
-                foreach (XElement element in xmlDoc.Descendants("member"))
+                foreach (var element in xmlDoc.Descendants("member"))
                 {
                     var name = element.Attributes().FirstOrDefault(x => x.Name == "name");
                     
                     if (name is null)
                         continue;
-                    
+
                     if (element.Descendants().FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
                     {
-                        StringBuilder docs = new StringBuilder();
+                        var docs = new StringBuilder();
                         var skipNext = false;
+                        
 
                         foreach (var childNode in summaryNode.DescendantNodes())
                         {
@@ -99,9 +95,10 @@ namespace DisqordDocBot.Services
                                 {
                                     if (childElement.FirstAttribute?.Name == "cref")
                                     {
-                                        var val = childElement.FirstAttribute.Value.Split(".");
+                                        var valueWithoutGenericChar = childElement.FirstAttribute.Value.Split(Global.GenericNameCharacter).First();
+                                        var scopes = valueWithoutGenericChar.Split(".");
                                         
-                                        docs.Append($"`{(val[0].StartsWith("T:") ? val.Last() : string.Join(".", val.TakeLast(2)))}`");
+                                        docs.Append($"`{(scopes[0].StartsWith("T:") ? scopes.Last() : string.Join(".", scopes.TakeLast(2)))}`");
                                     }
                                     else if (childElement.FirstAttribute?.Name == "langword")
                                         docs.Append($"*`{childElement.FirstAttribute.Value}`*");
@@ -121,29 +118,5 @@ namespace DisqordDocBot.Services
             }
         }
 
-        // private async Task LoadDocsAsync()
-        // {
-        //     var xmlDocuments = new List<XDocument>();
-        //
-        //     foreach (var path in GetDisqordXmlDocPaths())
-        //     {
-        //         var file = File.OpenRead(path);
-        //         xmlDocuments.Add(await XDocument.LoadAsync(file, LoadOptions.None, default));
-        //     }
-        //
-        //     foreach (var xmlDocument in xmlDocuments)
-        //     {
-        //         var members = xmlDocument.Descendants("member");
-        //         
-        //         foreach (var member in members)
-        //         {
-        //             if (member.Element("summary") is { } summaryNode)
-        //             {
-        //                 _documentation.Add(member.Attribute("name").Value, summaryNode.Value);
-        //             }
-        //         }
-        //     }
-        // }
-        
     }
 }

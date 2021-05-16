@@ -14,7 +14,7 @@ namespace DisqordDocBot.Search
             Info = info;
         }        
         public override LocalEmbedBuilder CreateInfoEmbed() 
-            => base.CreateInfoEmbed().AddCodeBlockField("Arguments", Info.CreateArgString());
+            => base.CreateInfoEmbed().AddCodeBlockField("Arguments", $"({Info.CreateArgString()})");
         
         public override string ToString() 
             => $"Constructor: {Info.DeclaringType!.Name}";
