@@ -6,8 +6,6 @@ namespace DisqordDocBot
     {
         public const string ConfigPath = "./config.json";
         public static readonly Color DefaultEmbedColor = new(0x2F3136);
-      
-        public static readonly string[] ForbiddenTagNames = new[] { "create", "" };
 
         public static readonly Snowflake AuthorId = 332675511161585666;
         public static readonly Snowflake[] ContributorIds = {608143610415939638, 218613903653863427};

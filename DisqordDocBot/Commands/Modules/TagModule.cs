@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Tasks;
 using Disqord;
@@ -19,10 +20,12 @@ namespace DisqordDocBot.Commands.Modules
     public class TagModule : DiscordGuildModuleBase
     {
         private readonly TagService _tagService;
-        
-        public TagModule(TagService tagService)
+        private readonly CommandService _commandService;
+
+        public TagModule(TagService tagService, CommandService commandService)
         {
             _tagService = tagService;
+            _commandService = commandService;
         }
 
         [Command("")]
@@ -132,7 +135,7 @@ namespace DisqordDocBot.Commands.Modules
         [Command("create")]
         public async Task<DiscordCommandResult> Create(string name, [Remainder] string value)
         {
-            if (Global.ForbiddenTagNames.Contains(name.ToLower()))
+            if (!IsTagNameValid(name))
                 return Response($"The tag name \"{name}\" is forbidden, please choose another name.");
             if(await _tagService.GetTagAsync(Context.GuildId, name) is not null)
                 return Response($"The tag \"{name}\" already exists, please choose another name.");
@@ -218,6 +221,9 @@ namespace DisqordDocBot.Commands.Modules
         [Command("clone")]
         public async Task<DiscordCommandResult> Clone(string name, [Remainder] string newName)
         {
+            if (!IsTagNameValid(newName))
+                return Response($"The tag name \"{newName}\" is forbidden, please choose another name.");
+            
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
 
@@ -243,6 +249,8 @@ namespace DisqordDocBot.Commands.Modules
         public async Task<DiscordCommandResult> Clone(string name, Snowflake guildId, [Remainder] string newName = null)
         {
             newName ??= name;
+            if (!IsTagNameValid(newName))
+                return Response($"The tag name \"{newName}\" is forbidden, please choose another name.");
             
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null) return await TagNotFoundResponse(name);
@@ -272,6 +280,13 @@ namespace DisqordDocBot.Commands.Modules
             
             return Response($"The tag \"{name}\" was cloned successfully to \"{newName}\" in {guild.Name}.");
         }
+
+        private bool IsTagNameValid(string name)
+            => _commandService
+                .GetAllModules()
+                .First(x => x.Type == typeof(TagModule)).Commands
+                .All(x => x.Aliases
+                    .All(y => !string.Equals(y, name, StringComparison.CurrentCultureIgnoreCase)));
 
         private async Task<DiscordCommandResult> TagNotFoundResponse(string name)
         {
