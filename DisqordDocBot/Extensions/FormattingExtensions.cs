@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace DisqordDocBot.Extensions
 {
@@ -29,6 +30,22 @@ namespace DisqordDocBot.Extensions
             }
 
             return type.Name;
+        }
+
+        public static string GetDocumentationKey(this MemberInfo info)
+        {
+            if (info is MethodInfo methodInfoa && methodInfoa.Name == "WithContent")
+                Console.WriteLine("spotted");
+            
+            return info switch
+            {
+                TypeInfo typeInfo => $"T:{typeInfo.FullName}",
+                PropertyInfo propertyInfo => $"P:{propertyInfo.DeclaringType}.{propertyInfo.Name}",
+                MethodInfo methodInfo => $"M:{methodInfo.DeclaringType}.{methodInfo.Name}({string.Join(',', methodInfo.GetParameters().Select(x => x.ParameterType.FullName))})",
+                EventInfo eventInfo => $"E:{eventInfo.DeclaringType}.{eventInfo.Name}",
+                FieldInfo fieldInfo => $"F:{fieldInfo.DeclaringType}.{fieldInfo.Name}",
+                _ => ""
+            };
         }
     }
 }

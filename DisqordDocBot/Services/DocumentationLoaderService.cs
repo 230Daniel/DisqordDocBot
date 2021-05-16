@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Disqord.Bot;
 using Disqord.Bot.Hosting;
+using DisqordDocBot.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -30,6 +31,14 @@ namespace DisqordDocBot.Services
             _documentation = new Dictionary<string, string>();
             _nugetCacheLocation = configuration["nuget:cache_location"];
             LoadDocs();
+        }
+
+        public string GetSummaryFromInfo(MemberInfo memberInfo)
+        {
+            if (_documentation.TryGetValue(memberInfo.GetDocumentationKey(), out var summary))
+                return summary;
+
+            return string.Empty;
         }
         
         // public override Task StartAsync(CancellationToken cancellationToken) 
@@ -110,8 +119,6 @@ namespace DisqordDocBot.Services
                     }
                 }    
             }
-        
-            Console.WriteLine(_documentation.Count);
         }
 
         // private async Task LoadDocsAsync()
