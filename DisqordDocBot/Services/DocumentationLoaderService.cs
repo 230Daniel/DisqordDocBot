@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -9,6 +10,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Disqord.Bot;
 using Disqord.Bot.Hosting;
+using DisqordDocBot.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -30,6 +32,14 @@ namespace DisqordDocBot.Services
             _documentation = new Dictionary<string, string>();
             _nugetCacheLocation = configuration["nuget:cache_location"];
             LoadDocs();
+        }
+
+        public string GetSummaryFromInfo(MemberInfo memberInfo)
+        {
+            if (_documentation.TryGetValue(memberInfo.GetDocumentationKey(), out var summary))
+                return summary;
+
+            return string.Empty;
         }
         
         // public override Task StartAsync(CancellationToken cancellationToken) 
@@ -66,24 +76,22 @@ namespace DisqordDocBot.Services
                 xmlDoc.Load(x);
                 return xmlDoc;
             });
+            
             foreach (var xmlDoc in xmlDocs)
             {
                 var nodes = xmlDoc.SelectNodes("/doc/members/member");
             
                 foreach (XmlNode node in nodes)
                 {
-                    
                     var childNodes = node.ChildNodes.Cast<XmlNode>();
         
                     if (childNodes.FirstOrDefault(x => x.Name == "summary") is { } summaryNode)
                     {
-                        // Logger.LogInformation(summaryNode.ToString());
+                        Console.WriteLine(string.Join(", ", summaryNode.ChildNodes.OfType<XmlNode>().Select(x => x.Name)));
                         _documentation.Add(node.Attributes.GetNamedItem("name").Value, summaryNode.InnerXml.Trim());
                     }
                 }    
             }
-        
-            Console.WriteLine(_documentation.Count);
         }
 
         // private async Task LoadDocsAsync()

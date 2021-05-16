@@ -12,26 +12,28 @@ namespace DisqordDocBot.Services
     {
         public IReadOnlyList<TypeInfo> LoadedTypes => _typeInfos;
 
+        public IReadOnlyList<MethodInfo> ExtensionMethods => _extensionMethods;
+
         private readonly List<TypeInfo> _typeInfos;
-        
+        private readonly List<MethodInfo> _extensionMethods;
+
         public TypeLoaderService(ILogger<TypeLoaderService> logger, DiscordBotBase client) : base(logger, client)
         {
             _typeInfos = new List<TypeInfo>();
+            _extensionMethods = new List<MethodInfo>();
             PopulateTypeCache();
+            PopulateExtensionCache();
         }
 
-        public IEnumerable<MethodInfo> GetAllExtensionMethods()
+        public void PopulateExtensionCache()
         {
             var sw = Stopwatch.StartNew();
-            var extensionMethods = new List<MethodInfo>();
 
             foreach (var loadedType in LoadedTypes)
-                extensionMethods.AddRange(loadedType.GetExtensionMethodsFromType());
+                _extensionMethods.AddRange(loadedType.GetExtensionMethodsFromType());
             
             sw.Stop();
             Logger.LogInformation($"Found all extension methods in {sw.ElapsedMilliseconds}ms");
-
-            return extensionMethods;
         }
 
         private void PopulateTypeCache()

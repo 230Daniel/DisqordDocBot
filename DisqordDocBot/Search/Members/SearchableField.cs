@@ -8,15 +8,15 @@ namespace DisqordDocBot.Search
     {
         public override FieldInfo Info { get; }
 
-        public SearchableField(FieldInfo info, SearchableType parent)
-            : base(parent)
+        public SearchableField(FieldInfo info, SearchableType parent, string summary)
+            : base(parent, summary)
         {
             Info = info;
         }
         
         public override LocalEmbedBuilder CreateInfoEmbed()
         {
-            var eb = base.CreateInfoEmbed().AddField("Type", Info.FieldType.Name);
+            var eb = base.CreateInfoEmbed().AddCodeBlockField("Type", Info.FieldType.Humanize());
 
             if (Info.IsConstantField() && Info.GetRawConstantValue() is { } value)
                 eb.AddCodeBlockField("Value", value);

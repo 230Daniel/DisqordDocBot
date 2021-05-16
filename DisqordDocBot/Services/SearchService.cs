@@ -84,14 +84,10 @@ namespace DisqordDocBot.Services
         private void BuildCaches()
         {
             var sw = Stopwatch.StartNew();
-            var extensionMethods = _typeLoaderService.GetAllExtensionMethods();
+            var extensionMethods = _typeLoaderService.ExtensionMethods;
             foreach (var type in _typeLoaderService.LoadedTypes)
             {
-                var summary = "";
-                if (_documentationLoaderService.Documentation.TryGetValue($"T:{type.FullName}", out var sum))
-                    summary = sum;
-                // var summary = _documentationLoaderService.Documentation[$"T:{type.FullName}"];
-                var searchableType = new SearchableType(type, extensionMethods.Where(x => type.IsAssignableTo(x.GetParameters().First().ParameterType)), summary);
+                var searchableType = new SearchableType(type, _typeLoaderService, _documentationLoaderService);
                 _allSearchables.AddRange(searchableType.Members.Where(x => x.Info.DeclaringType == type));
                 
                 _allSearchables.Add(searchableType);

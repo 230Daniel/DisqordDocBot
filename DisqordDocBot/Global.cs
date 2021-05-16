@@ -12,6 +12,7 @@ namespace DisqordDocBot
         public const string DisqordNamespace = "Disqord";
 
         // these are here just to make sure types from all projects get discovered
+        #pragma warning disable 169
         private static Disqord.Bot.DiscordBot _discordBot;
         private static Disqord.Snowflake _disqordCore;
         private static Disqord.Gateway.Api.IGateway _disqordGatewayApi;
@@ -19,5 +20,6 @@ namespace DisqordDocBot
         private static Disqord.Rest.Api.Route _disqordRestApi;
         private static Disqord.Rest.IRestClient _disqordRest;
         private static Disqord.Webhook.IWebhookClient _disqordWebhook;
+        #pragma warning restore 169
     }
 }

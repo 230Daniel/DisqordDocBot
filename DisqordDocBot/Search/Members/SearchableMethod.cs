@@ -8,7 +8,8 @@ namespace DisqordDocBot.Search
     {
         public override MethodInfo Info { get; }
 
-        public SearchableMethod(MethodInfo info, SearchableType parent) : base(parent)
+        public SearchableMethod(MethodInfo info, SearchableType parent, string summary)
+            : base(parent, summary)
         {
             Info = info;
         }
