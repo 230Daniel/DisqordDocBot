@@ -47,7 +47,7 @@ namespace DisqordDocBot.Services
                 foreach (var exportedType in exportedTypes)
                 {
                     var exportedTypeInfo = exportedType.GetTypeInfo();
-                    if (exportedTypeInfo.IsDisqordType() && !exportedType.IsHidden())
+                    if (exportedTypeInfo.IsDisqordType())
                         _typeInfos.Add(exportedTypeInfo);
                 }
             }
