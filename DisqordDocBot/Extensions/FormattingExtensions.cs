@@ -39,7 +39,7 @@ namespace DisqordDocBot.Extensions
                 return $"{info.ParameterType.Humanize()} = {defaultValue}";
             }
             else if (info.IsOut)
-                return $"out {info.ParameterType.Humanize()}";
+                return $"out {info.ParameterType.Humanize().Split('&').First()}";
             else
                 return info.ParameterType.Humanize();
         }
