@@ -11,8 +11,8 @@ namespace DisqordDocBot.Extensions
         public static string CreateArgString(this MethodBase methodBase)
         {
             return methodBase.IsExtensionMethod() ? 
-                $"this {string.Join(", ", methodBase.GetParameters().Select(x => $"{x.ParameterType.Humanize()} {x.Name}"))}" : 
-                $"{string.Join(", ", methodBase.GetParameters().Select(x => $"{x.Humanize()} {x.Name}"))}";
+                $"this {string.Join(", ", methodBase.GetParameters().Select(x => x.Humanize()))}" : 
+                $"{string.Join(", ", methodBase.GetParameters().Select(x => x.Humanize()))}";
         }
         
         public static string CreateGenericArgString(this MethodBase methodBase) 
@@ -33,15 +33,10 @@ namespace DisqordDocBot.Extensions
 
         public static string Humanize(this ParameterInfo info)
         {
-            if (info.IsOptional)
-            {
-                var defaultValue = info.DefaultValue is null ? "null" : info.DefaultValue.ToString();
-                return $"{info.ParameterType.Humanize()} = {defaultValue}";
-            }
-            else if (info.IsOut)
-                return $"out {info.ParameterType.Humanize().Split('&').First()}";
+            if (info.IsOut)
+                return $"out {info.ParameterType.Humanize().Split('&').First()} {info.Name}";
             else
-                return info.ParameterType.Humanize();
+                return $"{info.ParameterType.Humanize()} {info.Name}";
         }
 
         public static string GetDocumentationKey(this MemberInfo info)
