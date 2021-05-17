@@ -1,5 +1,4 @@
 using System.Reflection;
-using DisqordDocBot.Extensions;
 
 namespace DisqordDocBot.Search
 {

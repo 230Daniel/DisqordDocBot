@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -24,6 +25,7 @@ namespace DisqordDocBot.Extensions
             var members = new List<MemberInfo>();
             members.AddRange(typeInfo
                 .GetMembers(SearchFlags)
+                .Where(x => !x.IsHidden())
                 .Except(typeInfo.GetAllBackingMethods()));
             
             // interface members dont include members implemented from other interfaces
@@ -80,6 +82,19 @@ namespace DisqordDocBot.Extensions
 
             return types;
         }
-        
+
+        public static bool IsHidden(this MemberInfo info)
+        {
+            if (info.GetCustomAttribute<EditorBrowsableAttribute>() is { } attribute)
+                return attribute.State == EditorBrowsableState.Never && info.GetCustomAttribute<ExtensionAttribute>() is null;
+            else
+            {
+                if (info is MethodInfo methodInfo)
+                    return methodInfo.IsPrivate;
+
+                return false;
+            }
+                
+        }
     }
 }

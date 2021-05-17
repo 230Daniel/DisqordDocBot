@@ -1,7 +1,9 @@
-using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Disqord;
 using Disqord.Bot;
+using Disqord.Rest;
 using DisqordDocBot.Extensions;
 using Qmmands;
 
@@ -22,7 +24,13 @@ namespace DisqordDocBot.Commands.Modules
         }
 
         [Command("ping")]
-        public DiscordCommandResult Ping()
-            => Response($"Latency: {(int)(DateTimeOffset.Now - Context.Message.CreatedAt).TotalMilliseconds}ms");
+        public async Task Ping()
+        {
+            var sw = Stopwatch.StartNew();
+            var msg = await Response($"Latency: *loading*");
+            sw.Stop();
+
+            await msg.ModifyAsync(x => x.Content = $"Latency: {(int) sw.ElapsedMilliseconds}ms");
+        }
     }
 }
