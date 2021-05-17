@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Disqord.Bot;
 using Microsoft.Extensions.Hosting;
 using Qmmands;
@@ -16,13 +17,17 @@ namespace DisqordDocBot.Commands.Modules
         }
         
         [Command("shutdown", "stop", "die", "kill", "exit")]
-        public void Shutdown()
-            => _lifetime.StopApplication();
-        
-        
-        [Command("restart", "update")]
-        public void Restart()
+        public async Task Shutdown()
         {
+            await Response("Shutting down");
+            _lifetime.StopApplication();
+        }
+
+
+        [Command("restart", "update")]
+        public async Task Restart()
+        {
+            await Response("Restarting");
             Environment.ExitCode = 1;
             _lifetime.StopApplication();
         }
