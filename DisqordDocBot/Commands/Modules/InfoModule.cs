@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Disqord;
 using Disqord.Bot;
@@ -19,5 +20,9 @@ namespace DisqordDocBot.Commands.Modules
 
             return Response(eb);
         }
+
+        [Command("ping")]
+        public DiscordCommandResult Ping()
+            => Response($"Latency: {(int)(DateTimeOffset.Now - Context.Message.CreatedAt).TotalMilliseconds}ms");
     }
 }
