@@ -25,7 +25,7 @@ namespace DisqordDocBot.Services
             _documentationLoaderService = documentationLoaderService;
             _allSearchables = new List<ISearchable>();
             _searchableTypes = new List<SearchableType>();
-            // BuildCaches();
+            BuildCaches();
         }
 
         public ISearchable GetMostRelevantItem(string query)
