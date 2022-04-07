@@ -29,9 +29,9 @@ namespace DisqordDocBot.Commands.Modules
         [Command("")]
         public DiscordCommandResult Help()
         {
-            var admin = Context.Author.GetGuildPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
+            var admin = Context.Author.GetPermissions().ManageGuild ? "\nAs a server admin, you override permission checks" : "";
 
-            return Response(new LocalEmbedBuilder()
+            return Response(new LocalEmbed()
                 .WithDefaultColor()
                 .WithTitle("Tag")
                 .WithDescription("`tag [name]` - Use a tag\n" +
@@ -51,9 +51,9 @@ namespace DisqordDocBot.Commands.Modules
         public async Task<DiscordCommandResult> Tag([Remainder] string name)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
-            if (tag is null) 
+            if (tag is null)
                 return await TagNotFoundResponse(name);
-            
+
             tag.Uses++;
             await _tagService.UpdateTagAsync(tag);
             return Response(tag.Content);
@@ -68,11 +68,11 @@ namespace DisqordDocBot.Commands.Modules
             var i = 0;
             var tagStrings = tags.Select(x => $"`#{++i}` {x.Name} ({Mention.User(x.MemberId)})\n");
             var stringPages = new List<string>();
-            
+
             var current = "";
             foreach (var tagString in tagStrings)
             {
-                if((current + tagString).Length <= 2048)
+                if ((current + tagString).Length <= 2048)
                     current += tagString;
                 else
                 {
@@ -83,33 +83,33 @@ namespace DisqordDocBot.Commands.Modules
             if (!string.IsNullOrWhiteSpace(current))
                 stringPages.Add(current);
 
-            var pages = stringPages.Select(x => new Page(
-                new LocalEmbedBuilder()
-                    .WithDefaultColor()
-                    .WithTitle("Tags")
-                    .WithDescription(x)
-                    .WithFooter($"Page {stringPages.IndexOf(x) + 1} of {stringPages.Count}")))
+            var pages = stringPages.Select(x => new Page().WithEmbeds(
+                    new LocalEmbed()
+                        .WithDefaultColor()
+                        .WithTitle("Tags")
+                        .WithDescription(x)
+                        .WithFooter($"Page {stringPages.IndexOf(x) + 1} of {stringPages.Count}")))
                 .ToList();
 
             return pages.Count switch
             {
                 0 => Response("There are no tags for this server."),
-                1 => Response(pages[0].Embed),
+                1 => Response(pages[0].Embeds[0]),
                 _ => Pages(pages)
             };
         }
-        
+
         [Command("info")]
         public async Task<DiscordCommandResult> Info([Remainder] string name)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
             if (tag is null)
                 return await TagNotFoundResponse(name);
-            
-            var member = Context.Guild.GetMember(tag.MemberId) ?? 
+
+            var member = Context.Guild.GetMember(tag.MemberId) ??
                          await Context.Guild.FetchMemberAsync(tag.MemberId);
 
-            return Response(new LocalEmbedBuilder()
+            return Response(new LocalEmbed()
                 .WithDefaultColor()
                 .WithTitle($"Tag: {tag.Name}")
                 .AddField("Owner", member is null ? $"{tag.MemberId} (not in server)" : member.Mention, true)
@@ -119,7 +119,7 @@ namespace DisqordDocBot.Commands.Modules
                 .AddField("Edited at", $"{tag.EditedAt:yyyy-MM-dd}", true)
                 .AddField("Revisions", tag.Revisions, true));
         }
-        
+
         [Command("create")]
         public async Task<DiscordCommandResult> Create(string name, [Remainder] string value)
         {
@@ -127,7 +127,7 @@ namespace DisqordDocBot.Commands.Modules
                 return Response($"The tag name \"{name}\" is forbidden, please choose another name.");
             if (await _tagService.GetTagAsync(Context.GuildId, name) is not null)
                 return Response($"The tag \"{name}\" already exists, please choose another name.");
-            
+
             var tag = new Tag
             {
                 GuildId = Context.GuildId,
@@ -138,10 +138,10 @@ namespace DisqordDocBot.Commands.Modules
                 EditedAt = DateTimeOffset.UtcNow
             };
             await _tagService.CreateTagAsync(tag);
-            
+
             return Response($"The tag \"{name}\" was created successfully.");
         }
-        
+
         [Command("edit")]
         public async Task<DiscordCommandResult> Edit(string name, [Remainder] string content)
         {
@@ -149,14 +149,14 @@ namespace DisqordDocBot.Commands.Modules
             if (tag is null)
                 return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
+            if (tag.MemberId != Context.Author.Id && !Context.Author.GetPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             tag.Content = content;
             tag.EditedAt = DateTimeOffset.UtcNow;
             tag.Revisions++;
             await _tagService.UpdateTagAsync(tag);
-            
+
             return Response($"The tag \"{name}\" was edited successfully.");
         }
 
@@ -167,11 +167,11 @@ namespace DisqordDocBot.Commands.Modules
             if (tag is null)
                 return await TagNotFoundResponse(name);
 
-            if (tag.MemberId != Context.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
+            if (tag.MemberId != Context.Author.Id && !Context.Author.GetPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             await _tagService.RemoveTagAsync(tag);
-            
+
             return Response($"The tag \"{name}\" was removed successfully.");
         }
 
@@ -179,18 +179,18 @@ namespace DisqordDocBot.Commands.Modules
         public async Task<DiscordCommandResult> Claim([Remainder] string name)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
-            if (tag is null) 
+            if (tag is null)
                 return await TagNotFoundResponse(name);
-            
-            var member = Context.Guild.GetMember(tag.MemberId) ?? 
+
+            var member = Context.Guild.GetMember(tag.MemberId) ??
                          await Context.Guild.FetchMemberAsync(tag.MemberId);
-                
+
             if (member is not null)
                 return Response($"The owner of the tag \"{name}\" is still in the server.");
 
             tag.MemberId = Context.Message.Author.Id;
             await _tagService.UpdateTagAsync(tag);
-            
+
             return Response($"Ownership of the tag \"{name}\" was successfully transferred to you.");
         }
 
@@ -198,26 +198,26 @@ namespace DisqordDocBot.Commands.Modules
         public async Task<DiscordCommandResult> Transfer(string name, [Remainder] [RequireNotBot] IMember member)
         {
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
-            if (tag is null) 
+            if (tag is null)
                 return await TagNotFoundResponse(name);
-            
-            if (tag.MemberId != Context.Author.Id && !Context.Author.GetGuildPermissions().ManageGuild)
+
+            if (tag.MemberId != Context.Author.Id && !Context.Author.GetPermissions().ManageGuild)
                 return Response($"The tag \"{name}\" does not belong to you.");
 
             tag.MemberId = member.Id;
             await _tagService.UpdateTagAsync(tag);
-            
+
             return Response($"Ownership of the tag \"{name}\" was successfully transferred to {member.Mention}.");
         }
-        
+
         [Command("clone")]
         public async Task<DiscordCommandResult> Clone(string name, [Remainder] string newName)
         {
             if (!IsTagNameValid(newName))
                 return Response($"The tag name \"{newName}\" is forbidden, please choose another name.");
-            
+
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
-            if (tag is null) 
+            if (tag is null)
                 return await TagNotFoundResponse(name);
 
             var otherTag = await _tagService.GetTagAsync(Context.GuildId, newName);
@@ -234,29 +234,29 @@ namespace DisqordDocBot.Commands.Modules
                 EditedAt = DateTimeOffset.UtcNow
             };
             await _tagService.CreateTagAsync(otherTag);
-            
+
             return Response($"The tag \"{name}\" was cloned successfully to \"{newName}\".");
         }
-        
+
         [Command("clone")]
         public async Task<DiscordCommandResult> Clone(string name, Snowflake guildId, [Remainder] string newName = null)
         {
             newName ??= name;
             if (!IsTagNameValid(newName))
                 return Response($"The tag name \"{newName}\" is forbidden, please choose another name.");
-            
+
             var tag = await _tagService.GetTagAsync(Context.GuildId, name);
-            if (tag is null) 
+            if (tag is null)
                 return await TagNotFoundResponse(name);
-            
+
             var guild = Context.Bot.GetGuild(guildId);
-            var member = guild is null ? null : 
-                guild.GetMember(Context.Message.Author.Id) ?? 
+            var member = guild is null ? null :
+                guild.GetMember(Context.Message.Author.Id) ??
                 await guild.FetchMemberAsync(Context.Message.Author.Id);
 
             if (guild is null || member is null)
                 return Response($"I couldn't find a guild with id {guildId}.");
-            
+
             var otherTag = await _tagService.GetTagAsync(guild.Id, newName);
             if (otherTag is not null)
                 return Response($"The tag \"{newName}\" already exists in {guild.Name}, please choose another name.");
@@ -271,7 +271,7 @@ namespace DisqordDocBot.Commands.Modules
                 EditedAt = DateTimeOffset.UtcNow
             };
             await _tagService.CreateTagAsync(otherTag);
-            
+
             return Response($"The tag \"{name}\" was cloned successfully to \"{newName}\" in {guild.Name}.");
         }
 
@@ -285,9 +285,9 @@ namespace DisqordDocBot.Commands.Modules
         private async Task<DiscordCommandResult> TagNotFoundResponse(string name)
         {
             var closeTags = await _tagService.SearchTagsAsync(Context.GuildId, name);
-            if (closeTags.Count == 0) 
+            if (closeTags.Count == 0)
                 return Response($"I couldn't find a tag with the name \"{name}\".");
-            
+
             var didYouMean = " • " + string.Join("\n • ", closeTags.Take(3).Select(x => x.Name));
             return Response($"I couldn't find a tag with the name \"{name}\", did you mean...\n{didYouMean}");
         }

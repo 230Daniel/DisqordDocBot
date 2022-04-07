@@ -23,7 +23,7 @@ namespace DisqordDocBot.Services
 
         private readonly Dictionary<string, string> _documentation;
 
-        public DocumentationLoaderService(IConfiguration configuration, ILogger<DocumentationLoaderService> logger, DiscordBotBase bot) 
+        public DocumentationLoaderService(IConfiguration configuration, ILogger<DocumentationLoaderService> logger, DiscordBotBase bot)
             : base(logger, bot)
         {
             _documentation = new Dictionary<string, string>();
@@ -49,7 +49,7 @@ namespace DisqordDocBot.Services
                             if (_documentation.TryGetValue(member.GetDocumentationKey(), out var inheritedSummary))
                                 return inheritedSummary;
                         }
-                        
+
                     }
                 }
             }
@@ -61,7 +61,7 @@ namespace DisqordDocBot.Services
         {
             var xmlDocPaths = new List<string>();
             var packagePath = Path.Combine(_nugetCacheLocation, NugetPackagePath);
-            
+
             foreach (var directory in new DirectoryInfo(packagePath).GetDirectories())
             {
                 if (!directory.Name.Contains(Global.DisqordNamespace, StringComparison.OrdinalIgnoreCase))
@@ -71,9 +71,9 @@ namespace DisqordDocBot.Services
                     .GetDirectories()
                     .OrderBy(x => int.Parse(x.Name[x.Name.LastIndexOf(DisqordFilenameSeparator, StringComparison.Ordinal)..]))
                     .First();
-                
+
                 var xmlDocPath = new DirectoryInfo(Path.Combine(latestVersion.FullName, "lib/net5.0/")).GetFiles().First(x => x.Extension == ".xml");
-                
+
                 xmlDocPaths.Add(xmlDocPath.FullName);
             }
 
@@ -83,13 +83,13 @@ namespace DisqordDocBot.Services
         private void LoadDocs()
         {
             var xmlDocs = GetDisqordXmlDocPaths().Select(XDocument.Load);
-            
+
             foreach (var xmlDoc in xmlDocs)
             {
                 foreach (var element in xmlDoc.Descendants("member"))
                 {
                     var name = element.Attributes().FirstOrDefault(x => x.Name == "name");
-                    
+
                     if (name is null)
                         continue;
 
@@ -97,7 +97,7 @@ namespace DisqordDocBot.Services
                     {
                         var docs = new StringBuilder();
                         var skipNext = false;
-                        
+
 
                         foreach (var childNode in summaryNode.DescendantNodes())
                         {
@@ -106,7 +106,7 @@ namespace DisqordDocBot.Services
                                 skipNext = false;
                                 continue;
                             }
-                            
+
                             if (childNode is XElement childElement)
                             {
                                 if (childElement.Name == "see")
@@ -115,7 +115,7 @@ namespace DisqordDocBot.Services
                                     {
                                         var valueWithoutGenericChar = childElement.FirstAttribute.Value.Split(Global.GenericNameCharacter).First();
                                         var scopes = valueWithoutGenericChar.Split(".");
-                                        
+
                                         docs.Append($"`{(scopes[0].StartsWith("T:") ? scopes.Last() : string.Join(".", scopes.TakeLast(2)))}`");
                                     }
                                     else if (childElement.FirstAttribute?.Name == "langword")
@@ -128,11 +128,12 @@ namespace DisqordDocBot.Services
                                 }
                             }
                             else
-                                docs.Append(childNode);}
-                        
+                                docs.Append(childNode);
+                        }
+
                         _documentation.Add(name.Value, docs.ToString());
                     }
-                }    
+                }
             }
         }
 

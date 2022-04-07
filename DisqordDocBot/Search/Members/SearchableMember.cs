@@ -23,7 +23,7 @@ namespace DisqordDocBot.Search
         public virtual RelevanceScore GetRelevanceScore(string query)
         {
             var comparisonString = Info.Name;
-            
+
             if (string.Equals(comparisonString, query, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.FullMatch;
             else if (comparisonString.Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -32,9 +32,9 @@ namespace DisqordDocBot.Search
                 return RelevanceScore.NoMatch;
         }
 
-        public virtual LocalEmbedBuilder CreateInfoEmbed()
+        public virtual LocalEmbed CreateInfoEmbed()
         {
-            var eb = new LocalEmbedBuilder()
+            var eb = new LocalEmbed()
                 .WithDefaultColor()
                 .WithTitle(ToString())
                 .WithDescription(Summary);
@@ -42,7 +42,7 @@ namespace DisqordDocBot.Search
             return eb;
         }
 
-        public override string ToString() 
+        public override string ToString()
             => Info.DeclaringType is null ? Info.Name : $"{Parent.Info.Humanize()}.{Info.Name.Split('.').Last()}";
 
         public static SearchableMember Create(MemberInfo info, SearchableType parent, DocumentationLoaderService documentationLoaderService)
@@ -51,7 +51,7 @@ namespace DisqordDocBot.Search
             return info switch
             {
                 PropertyInfo propertyInfo => new SearchableProperty(propertyInfo, parent, summary),
-                MethodInfo {DeclaringType: { }} methodInfo when methodInfo.DeclaringType == typeof(object) => new HiddenSearchable(methodInfo, parent, summary),
+                MethodInfo { DeclaringType: { } } methodInfo when methodInfo.DeclaringType == typeof(object) => new HiddenSearchable(methodInfo, parent, summary),
                 MethodInfo methodInfo when methodInfo.IsExtensionMethod() => new SearchableExtensionMethod(methodInfo, parent, summary),
                 MethodInfo methodInfo => new SearchableMethod(methodInfo, parent, summary),
                 FieldInfo fieldInfo => new SearchableField(fieldInfo, parent, summary),

@@ -10,7 +10,7 @@ namespace DisqordDocBot.Extensions
             where T : ISearchable
         {
             var resultDict = new Dictionary<T, RelevanceScore>(searchables.Count);
-            
+
             foreach (var searchableType in searchables)
             {
                 if (searchableType is HiddenSearchable)

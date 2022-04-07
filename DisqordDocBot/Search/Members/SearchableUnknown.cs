@@ -12,7 +12,7 @@ namespace DisqordDocBot.Search
             Info = info;
         }
 
-        public override string ToString() 
+        public override string ToString()
             => $"Unknown: {base.ToString()}";
     }
 }

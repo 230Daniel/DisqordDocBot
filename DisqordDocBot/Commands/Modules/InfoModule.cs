@@ -14,7 +14,7 @@ namespace DisqordDocBot.Commands.Modules
         [Command("info")]
         public DiscordCommandResult Info()
         {
-            var eb = new LocalEmbedBuilder()
+            var eb = new LocalEmbed()
                 .WithDefaultColor()
                 .WithTitle("Disqord Doc Bot")
                 .WithDescription(
@@ -27,10 +27,10 @@ namespace DisqordDocBot.Commands.Modules
         public async Task Ping()
         {
             var sw = Stopwatch.StartNew();
-            var msg = await Response($"Latency: *loading*");
+            var msg = await Response("Latency: *loading*");
             sw.Stop();
 
-            await msg.ModifyAsync(x => x.Content = $"Latency: {(int) sw.ElapsedMilliseconds}ms");
+            await msg.ModifyAsync(x => x.Content = $"Latency: {(int)sw.ElapsedMilliseconds}ms");
         }
     }
 }

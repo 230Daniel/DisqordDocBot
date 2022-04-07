@@ -10,14 +10,14 @@ namespace DisqordDocBot.Extensions
     {
         public static string CreateArgString(this MethodBase methodBase)
         {
-            return methodBase.IsExtensionMethod() ? 
-                $"this {string.Join(", ", methodBase.GetParameters().Select(x => x.Humanize()))}" : 
+            return methodBase.IsExtensionMethod() ?
+                $"this {string.Join(", ", methodBase.GetParameters().Select(x => x.Humanize()))}" :
                 $"{string.Join(", ", methodBase.GetParameters().Select(x => x.Humanize()))}";
         }
-        
-        public static string CreateGenericArgString(this MethodBase methodBase) 
-            => methodBase.IsGenericMethod ? 
-                $"<{string.Join(", ", methodBase.GetGenericArguments().Select(x => x.Humanize()))}>" : 
+
+        public static string CreateGenericArgString(this MethodBase methodBase)
+            => methodBase.IsGenericMethod ?
+                $"<{string.Join(", ", methodBase.GetGenericArguments().Select(x => x.Humanize()))}>" :
                 string.Empty;
 
         public static string Humanize(this Type type)
@@ -79,7 +79,7 @@ namespace DisqordDocBot.Extensions
             if (param.ParameterType.IsGenericType)
             {
                 sb.Append('{');
-                
+
                 var genericArgs = new List<string>();
 
                 foreach (var genericArgument in param.ParameterType.GetGenericArguments())
@@ -99,7 +99,7 @@ namespace DisqordDocBot.Extensions
                 }
 
                 sb.Append(string.Join(',', genericArgs));
-                
+
                 sb.Append('}');
             }
 

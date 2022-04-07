@@ -1,4 +1,3 @@
-using System;
 using Disqord;
 
 namespace DisqordDocBot.Extensions
@@ -6,14 +5,14 @@ namespace DisqordDocBot.Extensions
     public static class EmbedBuildingExtensions
     {
 
-        
-        public static LocalEmbedBuilder WithDefaultColor(this LocalEmbedBuilder eb)
+
+        public static LocalEmbed WithDefaultColor(this LocalEmbed eb)
             => eb.WithColor(Global.DefaultEmbedColor);
-        
-        public static LocalEmbedBuilder FillLineWithEmptyFields(this LocalEmbedBuilder eb)
+
+        public static LocalEmbed FillLineWithEmptyFields(this LocalEmbed eb)
         {
             var currentInlineFieldCount = 0;
-            
+
             for (var i = eb.Fields.Count - 1; i >= 0; i--)
             {
                 if (!eb.Fields[i].IsInline)
@@ -35,31 +34,28 @@ namespace DisqordDocBot.Extensions
             return eb;
         }
 
-        public static LocalEmbedBuilder AddInlineField(this LocalEmbedBuilder eb, string name, string value)
+        public static LocalEmbed AddInlineField(this LocalEmbed eb, string name, string value)
             => eb.AddField(name, value, true);
-        
-        public static LocalEmbedBuilder AddInlineField(this LocalEmbedBuilder eb, string name, object value)
+
+        public static LocalEmbed AddInlineField(this LocalEmbed eb, string name, object value)
             => eb.AddField(name, value, true);
-        
-        public static LocalEmbedBuilder AddInlineField(this LocalEmbedBuilder eb, LocalEmbedFieldBuilder efb)
+
+        public static LocalEmbed AddInlineField(this LocalEmbed eb, LocalEmbedField efb)
             => eb.AddField(efb);
-        
-        public static LocalEmbedBuilder AddInlineField(this LocalEmbedBuilder eb, Action<LocalEmbedFieldBuilder> action)
-            => eb.AddField(action);
-        
-        public static LocalEmbedBuilder AddInlineBlankField(this LocalEmbedBuilder eb)
+
+        public static LocalEmbed AddInlineBlankField(this LocalEmbed eb)
             => eb.AddBlankField(true);
-        
-        public static LocalEmbedBuilder AddCodeBlockField(this LocalEmbedBuilder eb, string name, string value)
+
+        public static LocalEmbed AddCodeBlockField(this LocalEmbed eb, string name, string value)
             => eb.AddField(name, Markdown.CodeBlock("csharp", value));
-        
-        public static LocalEmbedBuilder AddCodeBlockField(this LocalEmbedBuilder eb, string name, object value)
+
+        public static LocalEmbed AddCodeBlockField(this LocalEmbed eb, string name, object value)
             => eb.AddField(name, Markdown.CodeBlock("csharp", value.ToString()));
-        
-        public static LocalEmbedBuilder AddInlineCodeBlockField(this LocalEmbedBuilder eb, string name, string value)
+
+        public static LocalEmbed AddInlineCodeBlockField(this LocalEmbed eb, string name, string value)
             => eb.AddField(name, Markdown.CodeBlock("csharp", value), true);
-        
-        public static LocalEmbedBuilder AddInlineCodeBlockField(this LocalEmbedBuilder eb, string name, object value)
+
+        public static LocalEmbed AddInlineCodeBlockField(this LocalEmbed eb, string name, object value)
             => eb.AddField(name, Markdown.CodeBlock("csharp", value.ToString()), true);
     }
 }

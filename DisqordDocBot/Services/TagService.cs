@@ -12,7 +12,7 @@ namespace DisqordDocBot.Services
     public class TagService
     {
         private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
-        
+
         public TagService(IDbContextFactory<DatabaseContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
@@ -29,7 +29,7 @@ namespace DisqordDocBot.Services
             await using var db = _dbContextFactory.CreateDbContext();
             return await db.Tags.Where(x => x.GuildId == guildId).ToListAsync();
         }
-        
+
         public async Task<List<Tag>> SearchTagsAsync(Snowflake guildId, string query)
         {
             var tags = await GetTagsAsync(guildId);
@@ -46,21 +46,21 @@ namespace DisqordDocBot.Services
             var tags = await GetTagsAsync(tag.GuildId);
             return tags.OrderByDescending(x => x.Uses).TakeWhile(x => x.Name != tag.Name).Count() + 1;
         }
-        
+
         public async Task CreateTagAsync(Tag tag)
         {
             await using var db = _dbContextFactory.CreateDbContext();
             await db.Tags.AddAsync(tag);
             await db.SaveChangesAsync();
         }
-        
+
         public async Task UpdateTagAsync(Tag tag)
         {
             await using var db = _dbContextFactory.CreateDbContext();
             db.Tags.Update(tag);
             await db.SaveChangesAsync();
         }
-        
+
         public async Task RemoveTagAsync(Tag tag)
         {
             await using var db = _dbContextFactory.CreateDbContext();

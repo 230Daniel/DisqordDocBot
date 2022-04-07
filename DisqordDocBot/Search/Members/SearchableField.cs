@@ -13,8 +13,8 @@ namespace DisqordDocBot.Search
         {
             Info = info;
         }
-        
-        public override LocalEmbedBuilder CreateInfoEmbed()
+
+        public override LocalEmbed CreateInfoEmbed()
         {
             var eb = base.CreateInfoEmbed().AddCodeBlockField("Type", Info.FieldType.Humanize());
 
@@ -22,7 +22,7 @@ namespace DisqordDocBot.Search
                 eb.AddCodeBlockField("Value", value);
             else if (Info.IsBootlegConstantField())
                 eb.AddCodeBlockField("Value", Info.GetValue(null));
-            
+
             return eb;
         }
 

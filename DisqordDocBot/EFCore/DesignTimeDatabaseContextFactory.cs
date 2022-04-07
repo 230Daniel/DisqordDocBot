@@ -4,9 +4,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace DisqordDocBot.EFCore
 {
-    public class DesignTimeDatabaseContextFactory : IDesignTimeDbContextFactory<DatabaseContext> 
+    public class DesignTimeDatabaseContextFactory : IDesignTimeDbContextFactory<DatabaseContext>
     {
-        public DatabaseContext CreateDbContext(string[] args) 
+        public DatabaseContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -14,6 +14,6 @@ namespace DisqordDocBot.EFCore
                 .Build();
 
             return new DatabaseContext(configuration);
-        } 
+        }
     }
 }

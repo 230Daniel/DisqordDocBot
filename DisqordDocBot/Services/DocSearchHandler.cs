@@ -19,11 +19,11 @@ namespace DisqordDocBot.Services
         protected override async ValueTask OnCommandNotFound(DiscordCommandContext context)
         {
             var result = _searchService.GetMostRelevantItem(context.Input.Trim());
-            
-            if (result is null) 
-                await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithContent("No results found").Build());
-            else 
-                await Client.SendMessageAsync(context.ChannelId, new LocalMessageBuilder().WithEmbed(result.CreateInfoEmbed()).Build());
+
+            if (result is null)
+                await Client.SendMessageAsync(context.ChannelId, new LocalMessage().WithContent("No results found"));
+            else
+                await Client.SendMessageAsync(context.ChannelId, new LocalMessage().AddEmbed(result.CreateInfoEmbed()));
         }
     }
 }

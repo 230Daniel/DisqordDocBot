@@ -14,11 +14,11 @@ namespace DisqordDocBot.Search
         {
             Info = info;
         }
-        
-        public override string ToString() 
+
+        public override string ToString()
             => $"Property: {base.ToString()}";
 
-        public override LocalEmbedBuilder CreateInfoEmbed() => 
+        public override LocalEmbed CreateInfoEmbed() =>
             base.CreateInfoEmbed()
                 .AddCodeBlockField("Accessors", BuildAccessorString())
                 .AddCodeBlockField("Type", Info.PropertyType.Humanize());

@@ -11,11 +11,11 @@ namespace DisqordDocBot.Search
     public class SearchableType : ISearchable
     {
         public string Summary { get; }
-        
+
         public TypeInfo Info { get; }
-        
+
         public IReadOnlyList<SearchableMember> Members { get; }
-        
+
         public SearchableType(TypeInfo info, TypeLoaderService typeLoaderService, DocumentationLoaderService documentationLoaderService)
         {
             Info = info;
@@ -32,18 +32,18 @@ namespace DisqordDocBot.Search
         {
             if (string.Equals(query, Info.Name, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.FullMatch;
-            
-            if(Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+
+            if (Info.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
                 return RelevanceScore.PartialMatch;
-            
+
             return RelevanceScore.NoMatch;
         }
 
         public SearchableMember SearchMembers(string query)
         {
             if (!Members.Any())
-                    return null;
-            
+                return null;
+
             var topResult = Members.SortByRelevance(query).FirstOrDefault();
 
             if (topResult.Value == RelevanceScore.NoMatch)
@@ -52,9 +52,9 @@ namespace DisqordDocBot.Search
             return topResult.Key;
         }
 
-        public LocalEmbedBuilder CreateInfoEmbed()
+        public LocalEmbed CreateInfoEmbed()
         {
-            var eb = new LocalEmbedBuilder()
+            var eb = new LocalEmbed()
                 .WithDefaultColor()
                 .WithTitle(ToString())
                 .WithDescription(Summary);
@@ -73,7 +73,7 @@ namespace DisqordDocBot.Search
                 }
                 else if (member is SearchableProperty property)
                 {
-                    if (displayProperties.Count < 3 &&!displayProperties.Contains(property.Info.Name))
+                    if (displayProperties.Count < 3 && !displayProperties.Contains(property.Info.Name))
                         displayProperties.Add(property.Info.Name);
                     propertyCount++;
                 }
@@ -87,7 +87,7 @@ namespace DisqordDocBot.Search
 
             if (displayMethods.Count > 0)
                 eb.AddInlineCodeBlockField($"Methods ({methodCount})", string.Join('\n', displayMethods));
-            
+
             return eb;
         }
 

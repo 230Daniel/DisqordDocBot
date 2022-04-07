@@ -31,7 +31,7 @@ namespace DisqordDocBot.Services
 
             foreach (var loadedType in LoadedTypes)
                 _extensionMethods.AddRange(loadedType.GetExtensionMethodsFromType());
-            
+
             sw.Stop();
             Logger.LogInformation($"Found all extension methods in {sw.ElapsedMilliseconds}ms");
         }

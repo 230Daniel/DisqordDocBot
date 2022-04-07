@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -15,7 +14,7 @@ namespace DisqordDocBot.Extensions
         {
             if (typeInfo.Namespace is null)
                 return false;
-            
+
             return typeInfo.Namespace.StartsWith(Global.DisqordNamespace);
         }
 
@@ -27,7 +26,7 @@ namespace DisqordDocBot.Extensions
                 .GetMembers(SearchFlags)
                 .Where(x => !x.IsHidden())
                 .Except(typeInfo.GetAllBackingMethods()));
-            
+
             // interface members dont include members implemented from other interfaces
             if (typeInfo.IsInterface)
             {
@@ -41,7 +40,7 @@ namespace DisqordDocBot.Extensions
         public static IEnumerable<MemberInfo> GetAllBackingMethods(this TypeInfo typeInfo)
         {
             // would love to not string compare everything but explicit interface impls got the best of me
-            return typeInfo.GetMembers(SearchFlags).Where(x => x is MethodInfo && 
+            return typeInfo.GetMembers(SearchFlags).Where(x => x is MethodInfo &&
                                                                (x.Name.Contains("get_") ||
                                                                 x.Name.Contains("set_") ||
                                                                 x.Name.Contains("add_") ||
@@ -53,7 +52,7 @@ namespace DisqordDocBot.Extensions
             // check for static
             if (!(type.IsAbstract && type.IsSealed && !type.IsNested))
                 return Array.Empty<MethodInfo>();
-            
+
             var methods = type.GetMethods();
             return methods.Where(x => x.IsExtensionMethod());
         }
@@ -64,7 +63,7 @@ namespace DisqordDocBot.Extensions
 
         public static bool IsConstantField(this FieldInfo info)
             => info.IsLiteral && !info.IsInitOnly;
-        
+
         public static bool IsBootlegConstantField(this FieldInfo info)
             => info.IsStatic && !info.IsLiteral && info.IsInitOnly;
 

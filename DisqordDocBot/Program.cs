@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Disqord.Bot.Hosting;
 using Disqord.Gateway;
@@ -15,11 +16,12 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace DisqordDocBot
 {
-    class Program
+    internal class Program
     {
         public static async Task Main(string[] args)
         {
             var host = new HostBuilder()
+                .UseSystemd()
                 .ConfigureLogging(x =>
                 {
                     var logger = new LoggerConfiguration()
@@ -27,38 +29,39 @@ namespace DisqordDocBot
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}", theme: AnsiConsoleTheme.Code)
                         .CreateLogger();
-                    
+
                     x.AddSerilog(logger, true);
-                    
-                    x.Services.Remove(x.Services.First(x => x.ServiceType == typeof(ILogger<>)));
+
+                    x.Services.Remove(x.Services.First(y => y.ServiceType == typeof(ILogger<>)));
                     x.Services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
                 })
-                .ConfigureHostConfiguration(configuration => configuration.AddJsonFile(Global.ConfigPath))
-                .ConfigureServices(((context, services) =>
+                .ConfigureHostConfiguration(configuration => configuration
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile(Global.ConfigPath))
+                .ConfigureServices(((_, services) =>
                 {
                     services.AddDbContextFactory<DatabaseContext>();
                     services.AddSingleton<TypeLoaderService>();
                     services.AddSingleton<SearchService>();
                     services.AddSingleton<TagService>();
-                } ))
+                }))
                 .ConfigureDiscordBot((context, bot) =>
                 {
                     bot.Token = context.Configuration["discord:token"];
                     bot.Intents = GatewayIntents.Recommended;
                     bot.Prefixes = context.Configuration.GetSection("discord:prefixes").Get<string[]>();
-                    bot.OwnerIds = new[] {Global.AuthorId};
                 })
                 .Build();
-            
+
             using (var scope = host.Services.CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 var context = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>().CreateDbContext();
                 logger.LogInformation("Migrating database....");
                 await context.Database.MigrateAsync();
-                logger.LogInformation("Done migrating database.");
+                logger.LogInformation("Done migrating database");
             }
-            
+
             using (host)
             {
                 await host.RunAsync();

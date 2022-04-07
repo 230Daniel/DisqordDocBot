@@ -14,7 +14,7 @@ namespace DisqordDocBot.Search
             Info = info;
         }
 
-        public override LocalEmbedBuilder CreateInfoEmbed()
+        public override LocalEmbed CreateInfoEmbed()
         {
             var eb = base.CreateInfoEmbed()
                 .AddCodeBlockField("Arguments", CreateArgString())
@@ -26,7 +26,7 @@ namespace DisqordDocBot.Search
         protected virtual string CreateArgString()
             => $"{Info.CreateGenericArgString()}({Info.CreateArgString()})";
 
-        public override string ToString() 
+        public override string ToString()
             => $"Method: {base.ToString()}";
 
     }

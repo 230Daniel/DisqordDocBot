@@ -13,8 +13,8 @@ namespace DisqordDocBot.Search
         {
             Info = info;
         }
-        
-        public override LocalEmbedBuilder CreateInfoEmbed()
+
+        public override LocalEmbed CreateInfoEmbed()
         {
             var eb = base.CreateInfoEmbed();
 
@@ -22,7 +22,7 @@ namespace DisqordDocBot.Search
             {
                 // do some quick black magic
                 var method = Info.EventHandlerType.GetMethod("Invoke");
-                
+
                 eb.AddCodeBlockField("Arguments", $"({method.CreateArgString()})");
                 eb.AddCodeBlockField("Return Type", method!.ReturnType.Humanize());
             }
@@ -30,7 +30,7 @@ namespace DisqordDocBot.Search
             return eb;
         }
 
-        public override string ToString() 
+        public override string ToString()
             => $"Event: {base.ToString()}";
     }
 }

@@ -18,8 +18,9 @@ namespace DisqordDocBot.Services
         private readonly DocumentationLoaderService _documentationLoaderService;
         private readonly List<ISearchable> _allSearchables;
         private readonly List<SearchableType> _searchableTypes;
-        
-        public SearchService(TypeLoaderService typeLoaderService, DocumentationLoaderService documentationLoaderService, ILogger<SearchService> logger, DiscordBotBase client) : base(logger, client)
+
+        public SearchService(TypeLoaderService typeLoaderService, DocumentationLoaderService documentationLoaderService, ILogger<SearchService> logger,
+            DiscordBotBase client) : base(logger, client)
         {
             _typeLoaderService = typeLoaderService;
             _documentationLoaderService = documentationLoaderService;
@@ -46,13 +47,13 @@ namespace DisqordDocBot.Services
             var topResult = _allSearchables.SortByRelevance(query).FirstOrDefault();
 
             Logger.LogInformation($"Completed global search in {sw.ElapsedMilliseconds}ms");
-            
+
             if (topResult.Value == RelevanceScore.NoMatch)
                 return null;
 
             return topResult.Key;
         }
-        
+
         private ISearchable TypeMemberSearch(string[] scopes)
         {
             var sw = Stopwatch.StartNew();
@@ -84,12 +85,11 @@ namespace DisqordDocBot.Services
         private void BuildCaches()
         {
             var sw = Stopwatch.StartNew();
-            var extensionMethods = _typeLoaderService.ExtensionMethods;
             foreach (var type in _typeLoaderService.LoadedTypes)
             {
                 var searchableType = new SearchableType(type, _typeLoaderService, _documentationLoaderService);
                 _allSearchables.AddRange(searchableType.Members.Where(x => x.Info.DeclaringType == type));
-                
+
                 _allSearchables.Add(searchableType);
                 _searchableTypes.Add(searchableType);
             }

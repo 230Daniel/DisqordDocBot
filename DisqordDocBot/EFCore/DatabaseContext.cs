@@ -10,14 +10,14 @@ namespace DisqordDocBot.EFCore
     public class DatabaseContext : DbContext
     {
         public DbSet<Tag> Tags { get; set; }
-        
+
         private readonly string _connectionString;
-        
+
         public DatabaseContext(IConfiguration config)
         {
             _connectionString = config["database:connection"];
         }
-        
+
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options
                 .UseNpgsql(_connectionString)

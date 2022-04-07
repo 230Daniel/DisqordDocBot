@@ -12,11 +12,11 @@ namespace DisqordDocBot.Search
             : base(parent, summary)
         {
             Info = info;
-        }        
-        public override LocalEmbedBuilder CreateInfoEmbed() 
+        }
+        public override LocalEmbed CreateInfoEmbed()
             => base.CreateInfoEmbed().AddCodeBlockField("Arguments", $"({Info.CreateArgString()})");
-        
-        public override string ToString() 
+
+        public override string ToString()
             => $"Constructor: {Info.DeclaringType!.Name}";
     }
 }
